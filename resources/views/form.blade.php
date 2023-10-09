@@ -4,6 +4,7 @@
 <html>
 <head>
     <title>Form Pengumpulan Data</title>
+    <link rel="stylesheet" href="{{ asset('css/form.css') }}">
 </head>
 <body>
     <h1>Form Pengumpulan Data</h1>
@@ -30,7 +31,7 @@
             <label for="video">Video (max 25MB):</label>
             <input type="file" name="video" accept="video/*" class="form-control" max-size="25000">
         </div>
-        <button type="submit" class="btn btn-primary">Simpan</button>
+        <button type="submit" id="submitbutton" class="btn btn-primary">Simpan</button>
     </form>
 </body>
 </html>
