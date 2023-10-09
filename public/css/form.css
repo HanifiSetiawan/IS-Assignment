@@ -1,0 +1,26 @@
+h1 {
+    margin-left: 1vw;
+}
+
+form {
+    display: inline-block;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-left: 3vw;
+    margin-right: 6vw;
+    margin-top: 2vh;
+}
+
+.form-group label {
+    margin-bottom: 1%;
+}
+
+#submitbutton {
+    position: relative;
+    margin-top: 5vh;
+    margin-left: 3vw;
+    margin-right: 6vw;
+}
