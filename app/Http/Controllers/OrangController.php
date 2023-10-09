@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Orang; // Sesuaikan dengan nama model yang kamu gunakan
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class OrangController extends Controller
 {
@@ -15,14 +16,21 @@ class OrangController extends Controller
 
     public function simpanData(Request $request)
     {
+        
         // Validasi data yang dikirimkan oleh pengguna
-        $request->validate([
+        $validator = Validator::make($request->all(),
+        [
             'nama' => 'required|string',
             'nomor_telepon' => 'required|string',
             'foto_ktp' => 'required|image',
             'dokumen' => 'required|mimes:pdf,doc,docx,xls,xlsx',
             'video' => 'required|file|max:25000|mimetypes:video/*',
-        ]);
+        ]
+        );
+
+        if($validator->fails()) {
+            return redirect()->back()->withErrors($validator);
+        }
 
         // Simpan file foto KTP
         $fotoKtpPath = $request->file('foto_ktp')->store('public/foto_ktp');

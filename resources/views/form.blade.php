@@ -7,8 +7,9 @@
     <link rel="stylesheet" href="{{ asset('css/form.css') }}">
 </head>
 <body>
-    <h1>Form Pengumpulan Data</h1>
+    
 
+    <h1>Form Pengumpulan Data</h1>
     <form action="{{ route('simpan-data') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="form-group">
