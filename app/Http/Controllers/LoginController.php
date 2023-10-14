@@ -22,7 +22,7 @@ class LoginController extends Controller
         
         if(Auth::attempt($validator)) {
             $request->session()->regenerate();
-            return redirect()->intended('home');
+            return redirect()->intended('/');
         }
 
         return back()->withErrors([
