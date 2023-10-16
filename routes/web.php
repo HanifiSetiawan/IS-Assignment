@@ -8,6 +8,7 @@ use App\Http\Controllers\RegisterController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrangController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\LogoutController;
 
 Route::get('/login', [LoginController::class, 'index']);
 Route::post('/login', [LoginController::class, 'login'])->name('login');
@@ -23,3 +24,4 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::get('/Data', [datacontroller::class, 'index'])->name('Data');
+Route::get('/logout', [LogoutController::class, 'logout'])->name('logout');

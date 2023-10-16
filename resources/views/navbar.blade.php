@@ -19,7 +19,7 @@
           <a class="nav-link" href="{{route('form')}}">Form</a>
         </li>
       </ul>
-      <button class="btn btn-primary btn-sm">Logout</button>
+      <a class="btn btn-primary btn-sm btn-navigate" href="{{route('logout')}}">Logout</a>
     </div>
   </div>
 </nav>
