@@ -1,8 +1,13 @@
+.title {
+    color: black;
+}
+
 h1 {
     text-align: center;
     padding-top: 10px;
     margin: auto;
     margin-bottom: 1vw;
+    color: black;
 }
 
 form {
