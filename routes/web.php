@@ -2,6 +2,7 @@
 
 // routes/web.php
 
+use App\Http\Controllers\datacontroller;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RegisterController;
 use Illuminate\Support\Facades\Route;
@@ -15,8 +16,10 @@ Route::get('/register', [RegisterController::class, 'index']);
 Route::post('/register', [RegisterController::class, 'register'])->name('register');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/', [HomeController::class, 'index']);
+    //Route::get('/', [HomeController::class, 'index']);
 
     Route::get('/form', [OrangController::class, 'index']);
     Route::post('/form', [OrangController::class, 'simpanData'])->name('simpan-data');
 });
+
+Route::get('/Data', [datacontroller::class, 'index']);

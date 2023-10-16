@@ -47,3 +47,11 @@ body {
     margin-right: 3vw;
     width: 82.5%;
 }
+
+.registerbutton {
+    position: relative;
+    margin-top: 5vh;
+    margin-left: 2vw;
+    margin-right: 3vw;
+    width: 82.5%;
+}

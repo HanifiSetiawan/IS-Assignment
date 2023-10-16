@@ -22,6 +22,5 @@
         </div>
         <button type="submit" id="submitbutton" class="btn btn-primary">Login</button>
     </form>
-
 </body>
 </html>

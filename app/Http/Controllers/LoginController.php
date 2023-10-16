@@ -30,4 +30,5 @@ class LoginController extends Controller
         ])->onlyInput('email');
 
     }
+    
 }

@@ -1,38 +1,53 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        .table-wrap {
+            word-wrap: break-word;
+        }
 
-@section('content')
+        .foto {
+            width: 100px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
 <div class="container">
-    <h1>Data Pribadi</h1>
-    
-    <h2>Nama: {{ $data->nama }}</h2>
-    <p>Nomor Telepon: {{ $data->nomor_telepon }}</p>
-
-    <!-- Tampilkan foto KTP jika tersedia -->
-    @if ($data->foto_ktp)
-        <img src="{{ asset('storage/foto_ktp/' . $data->foto_ktp) }}" alt="Foto KTP">
-    @endif
-
-    <!-- Tampilkan tautan ke file PDF jika tersedia -->
-    @if ($data->file_pdf)
-        <a href="{{ asset('storage/files/pdf/' . $data->file_pdf) }}" target="_blank">Lihat File PDF</a>
-    @endif
-
-    <!-- Tampilkan tautan ke file DOC jika tersedia -->
-    @if ($data->file_doc)
-        <a href="{{ asset('storage/files/doc/' . $data->file_doc) }}" target="_blank">Lihat File DOC</a>
-    @endif
-
-    <!-- Tampilkan tautan ke file XLS jika tersedia -->
-    @if ($data->file_xls)
-        <a href="{{ asset('storage/files/xls/' . $data->file_xls) }}" target="_blank">Lihat File XLS</a>
-    @endif
-
-    <!-- Tampilkan video jika tersedia -->
-    @if ($data->video)
-        <video width="320" height="240" controls>
-            <source src="{{ asset('storage/videos/' . $data->video) }}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-    @endif
-</div>
-@endsection
+        <h1>Data</h1>
+        <table class="table table-bordered table-wrap">
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th>Nomor Telepon</th>
+                    <th>Foto KTP</th>
+                    <th>Dokumen</th>
+                    <th>Video</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($orangs as $orang)
+                <tr>
+                    <td>{{ $orang->nama }}</td>
+                    <td>{{ $orang->nomor_telepon }}</td>
+                    <td>
+                        <img class="foto" src="{{ asset('storage/' . str_replace ('public/', '', $orang->foto_ktp)) }}" alt="Foto KTP">
+                    </td>
+                    <td>
+                        <a href="{{ asset($orang->dokumen) }}" download>{{ $orang->dokumen }}</a>
+                    </td>
+                    <td>
+                        <a href="{{ asset($orang->video) }}" download>{{ $orang->video }}</a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

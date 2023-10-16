@@ -52,5 +52,6 @@ class OrangController extends Controller
 
         return view('submit');
     }
+
 }
 

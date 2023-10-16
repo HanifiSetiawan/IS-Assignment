@@ -6,6 +6,6 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>selamat datamu sudah tersimpan!</h1>
+    <h1>selamat datamu sudah tersimpan! hehe</h1>
 </body>
 </html>
