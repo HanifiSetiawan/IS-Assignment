@@ -16,10 +16,10 @@ Route::get('/register', [RegisterController::class, 'index']);
 Route::post('/register', [RegisterController::class, 'register'])->name('register');
 
 Route::middleware(['auth'])->group(function () {
-    //Route::get('/', [HomeController::class, 'index']);
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 
-    Route::get('/form', [OrangController::class, 'index']);
+    Route::get('/form', [OrangController::class, 'index'])->name('form');
     Route::post('/form', [OrangController::class, 'simpanData'])->name('simpan-data');
 });
 
-Route::get('/Data', [datacontroller::class, 'index']);
+Route::get('/Data', [datacontroller::class, 'index'])->name('Data');

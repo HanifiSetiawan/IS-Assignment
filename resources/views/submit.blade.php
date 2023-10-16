@@ -6,6 +6,7 @@
     <title>Document</title>
 </head>
 <body>
+    @include('navbar')
     <h1>selamat datamu sudah tersimpan! hehe</h1>
 </body>
 </html>

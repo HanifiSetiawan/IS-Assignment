@@ -18,6 +18,7 @@
     </style>
 </head>
 <body>
+    @include('navbar')
 <div class="container">
         <h1>Data</h1>
         <table class="table table-bordered table-wrap">
@@ -39,10 +40,11 @@
                         <img class="foto" src="{{ asset('storage/' . str_replace ('public/', '', $orang->foto_ktp)) }}" alt="Foto KTP">
                     </td>
                     <td>
-                        <a href="{{ asset($orang->dokumen) }}" download>{{ $orang->dokumen }}</a>
+                        <a class="btn btn-primary" href="{{ asset('storage/' . str_replace ('public/', '', $orang->dokumen)) }}" download>Download dokumen</a>
+
                     </td>
                     <td>
-                        <a href="{{ asset($orang->video) }}" download>{{ $orang->video }}</a>
+                        <a class="btn btn-primary" href="{{ asset('storage/' . str_replace ('public/', '', $orang->video)) }}" download>Download video</a>
                     </td>
                 </tr>
                 @endforeach

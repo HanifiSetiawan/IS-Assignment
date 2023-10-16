@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ asset('css/form.css') }}">
 </head>
 <body>
+    @include('navbar')
     <div class="title">
         <h1 class="text-black ">Form Pengumpulan Data</h1>
     </div>    
