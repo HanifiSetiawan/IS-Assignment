@@ -93,7 +93,7 @@ class datacontroller extends Controller
         Storage::put($filepath, base64_decode($dok_dec));
 
         //basically download.... how?
-        Storage::download($filepath);
+        $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
 
         $doc = Storage::get($filepath);
 
@@ -104,6 +104,7 @@ class datacontroller extends Controller
         $key_dokumen->iv = $dokumen_enc['iv'];
         $key_dokumen->save();
 
-        return back();
+
+        return $response;
     }
 }
