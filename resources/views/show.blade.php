@@ -37,7 +37,7 @@
                     <td>{{ $orang->nama }}</td>
                     <td>{{ $orang->nomor_telepon }}</td>
                     <td>
-                        <img class="foto" src="{{ asset('storage/' . str_replace ('public/', '', $orang->foto_ktp)) }}" alt="Foto KTP">
+                        <img class="foto" src="data:image/png;base64,{{ $orang->foto_ktp }}" alt="Foto KTP">
                     </td>
                     <td>
                         <a class="btn btn-primary" href="{{ asset('storage/' . str_replace ('public/', '', $orang->dokumen)) }}" download>Download dokumen</a>

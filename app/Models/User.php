@@ -42,4 +42,14 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function orangs()
+    {
+        return $this->hasMany(Orang::class, 'user_id');
+    }
+
+    public function keys()
+    {
+        return $this->hasMany(Key::class, 'user_id');
+    }
 }

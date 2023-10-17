@@ -8,4 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Orang extends Model
 {
     use HasFactory;
+
+    public function users()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function keys()
+    {
+        return $this->hasMany(Key::class, 'orang_id');
+    }
 }

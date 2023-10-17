@@ -6,7 +6,9 @@ use App\Models\Key;
 use App\Services\EncryptRequests;
 use Illuminate\Http\Request;
 use App\Models\Orang;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class OrangController extends Controller
 {
@@ -53,14 +55,25 @@ class OrangController extends Controller
         $dokumen_enc = $this->encryptRequests->encrypt(base64_encode($dokumen->get()), $enctype);
         $foto_enc = $this->encryptRequests->encrypt(base64_encode($foto->get()), $enctype);
         $video_enc = $this->encryptRequests->encrypt(base64_encode($video->get()),$enctype);
+        
+        $filefoto = "public/foto_ktp/" . Str::random();
+        $filedokumen = "public/dokumen/" . Str::random();
+        $filevideo = "public/video/" . Str::random();
+
+        Storage::put($filefoto, $foto_enc['enc']);
+        Storage::put($filedokumen, $dokumen_enc['enc']);
+        Storage::put($filevideo, $video_enc['enc']);
 
         $orang = new Orang;
         $orang->nama = $nama['enc'];
         $orang->nomor_telepon = $no_telp['enc'];
-        $orang->foto_ktp = $foto_enc['enc'];
-        $orang->dokumen = $dokumen_enc['enc'];
-        $orang->video = $video_enc['enc'];
+        $orang->foto_ktp = $filefoto;
+        $orang->dokumen = $filedokumen;
+        $orang->video = $filevideo;
+        $orang->user_id = auth()->id();
         $orang->save();
+        
+        
         
         $orang_id = $orang->id;
 
