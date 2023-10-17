@@ -28,12 +28,8 @@ class datacontroller extends Controller
                 $key_nama = $orang->keys()->where('purpose', 'nama')->first();
                 $key_notelp = $orang->keys()->where('purpose', 'nomor_telepon')->first();
                 $key_pic = $orang->keys()->where('purpose', 'foto_ktp')->first();
-                $key_dokumen = $orang->keys()->where('purpose', 'dokumen')->first();
-                $key_video = $orang->keys()->where('purpose', 'video')->first();
 
                 $pic = Storage::get($orang->foto_ktp);
-                $doc = Storage::get($orang->dokumen);
-                $vid = Storage::get($orang->video);
 
 
                 $orang->nama = $this->decryptRequests
@@ -54,21 +50,8 @@ class datacontroller extends Controller
                             $key_pic->key,
                             $key_pic->iv);
 
-                $dok_dec = $this->decryptRequests
-                    ->decrypt($encType,
-                            $doc,
-                            $key_dokumen->key,
-                            $key_dokumen->iv);
-
-                $vid_dec = $this->decryptRequests
-                    ->decrypt($encType,
-                            $vid,
-                            $key_video->key,
-                            $key_video->iv);
-
                 $orang->foto_ktp = $foto_ktp_dec;
 
-                //not yet
                 
             }
             return view('show', ['orangs' => $orangs]);
