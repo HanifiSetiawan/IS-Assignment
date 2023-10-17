@@ -92,7 +92,6 @@ class datacontroller extends Controller
         $filepath = $filedokumen . '.' . $orang->ext_doc;
         Storage::put($filepath, base64_decode($dok_dec));
 
-        //basically download.... how?
         $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
 
         $doc = Storage::get($filepath);
@@ -104,6 +103,37 @@ class datacontroller extends Controller
         $key_dokumen->iv = $dokumen_enc['iv'];
         $key_dokumen->save();
 
+
+        return $response;
+    }
+
+    public function downloadVids($orang_id) {
+        $encType = 'aes-256-cbc';
+        $orang = Orang::find($orang_id);
+        $key_video = $orang->keys()->where('purpose', 'video')->first();
+        $filevideo = $orang->video;
+        $vid = Storage::get($filevideo);
+
+        $vid_dec = $this->decryptRequests
+                    ->decrypt($encType,
+                            $vid,
+                            $key_video->key,
+                            $key_video->iv);
+        Storage::delete($filevideo);
+
+        $filepath = $filevideo . '.' . $orang->ext_vid;
+        Storage::put($filepath, base64_decode($vid_dec));
+
+        $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
+        
+        $vid = Storage::get($filepath);
+
+        $vid_enc = $this->encryptRequests->encrypt(base64_encode($vid), $encType);
+        Storage::put($filevideo, $vid_enc['enc']);
+
+        $key_video->key = $vid_enc['key'];
+        $key_video->iv = $vid_enc['iv'];
+        $key_video->save();
 
         return $response;
     }

@@ -73,7 +73,7 @@ class OrangController extends Controller
         $orang->dokumen = $filedokumen;
         $orang->ext_doc = $dokumen->getClientOriginalExtension();
         $orang->video = $filevideo;
-        $orang->ext_vid = $foto->getClientOriginalExtension();
+        $orang->ext_vid = $video->getClientOriginalExtension();
         $orang->user_id = auth()->id();
         $orang->save();
         

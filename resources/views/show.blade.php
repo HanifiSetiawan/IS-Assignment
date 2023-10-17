@@ -40,11 +40,11 @@
                         <img class="foto" src="data:image/png;base64,{{ $orang->foto_ktp }}" alt="Foto KTP">
                     </td>
                     <td>
-                        <a class="btn btn-primary" href="{{ route('download', ['orang_id' => $orang->id]) }}">Download dokumen</a>
+                        <a class="btn btn-primary" href="{{ route('document', ['orang_id' => $orang->id]) }}">Download dokumen</a>
 
                     </td>
                     <td>
-                        <a class="btn btn-primary" href="{{ asset('storage/' . str_replace ('public/', '', $orang->video)) }}" download>Download video</a>
+                        <a class="btn btn-primary" href="{{ route('video', ['orang_id' => $orang->id]) }}" download>Download video</a>
                     </td>
                 </tr>
                 @endforeach
