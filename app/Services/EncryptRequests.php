@@ -21,6 +21,6 @@ class EncryptRequests {
             ]);
         }
         
-        return ['enc' => $encrypted, 'key' => $key, 'iv' => $iv];
+        return ['enc' => $encrypted, 'key' => base64_encode($key), 'iv' => base64_encode($iv)];
     }
 }
