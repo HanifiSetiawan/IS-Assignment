@@ -37,6 +37,7 @@ class OrangController extends Controller
         ]
         );
 
+
         if($validator->fails()) {
             return redirect()->back()->withErrors($validator);
         }
@@ -68,8 +69,11 @@ class OrangController extends Controller
         $orang->nama = $nama['enc'];
         $orang->nomor_telepon = $no_telp['enc'];
         $orang->foto_ktp = $filefoto;
+        $orang->ext_foto = $foto->getClientOriginalExtension();
         $orang->dokumen = $filedokumen;
+        $orang->ext_doc = $dokumen->getClientOriginalExtension();
         $orang->video = $filevideo;
+        $orang->ext_vid = $foto->getClientOriginalExtension();
         $orang->user_id = auth()->id();
         $orang->save();
         

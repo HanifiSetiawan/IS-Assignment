@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\Orang;
 use App\Services\DecryptRequests;
+use App\Services\EncryptRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -11,9 +12,11 @@ use Illuminate\Support\Facades\Response;
 class datacontroller extends Controller
 {
     protected $decryptRequests;
+    protected $encryptRequests;
 
-    public function __construct(DecryptRequests $decryptRequests) {
+    public function __construct(DecryptRequests $decryptRequests, EncryptRequests $encryptRequests) {
         $this->decryptRequests = $decryptRequests;
+        $this->encryptRequests = $encryptRequests;
     }
     public function index(){
         $user = Auth::user();
@@ -76,13 +79,31 @@ class datacontroller extends Controller
         $encType = 'aes-256-cbc';
         $orang = Orang::find($orang_id);
         $key_dokumen = $orang->keys()->where('purpose', 'dokumen')->first();
-        $doc = Storage::get($orang->dokumen);
+        $filedokumen = $orang->dokumen;
+        $doc = Storage::get($filedokumen);
 
         $dok_dec = $this->decryptRequests
                     ->decrypt($encType,
                             $doc,
                             $key_dokumen->key,
                             $key_dokumen->iv);
-        dd($orang);
+        Storage::delete($filedokumen);
+
+        $filepath = $filedokumen . '.' . $orang->ext_doc;
+        Storage::put($filepath, base64_decode($dok_dec));
+
+        //basically download.... how?
+        Storage::download($filepath);
+
+        $doc = Storage::get($filepath);
+
+        $dokumen_enc = $this->encryptRequests->encrypt(base64_encode($doc), $encType);
+        Storage::put($filedokumen, $dokumen_enc['enc']);
+
+        $key_dokumen->key = $dokumen_enc['key'];
+        $key_dokumen->iv = $dokumen_enc['iv'];
+        $key_dokumen->save();
+
+        return back();
     }
 }
