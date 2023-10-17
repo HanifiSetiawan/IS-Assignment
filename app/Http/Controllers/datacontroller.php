@@ -6,6 +6,7 @@ use App\Services\DecryptRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
 
 class datacontroller extends Controller
 {
@@ -65,10 +66,23 @@ class datacontroller extends Controller
                 $orang->foto_ktp = $foto_ktp_dec;
 
                 //not yet
-                $orang->dokumen = $dok_dec;
-                $orang->video = $vid_dec;
+                
             }
             return view('show', ['orangs' => $orangs]);
         }
+    }
+
+    public function downloadDocs($orang_id) {
+        $encType = 'aes-256-cbc';
+        $orang = Orang::find($orang_id);
+        $key_dokumen = $orang->keys()->where('purpose', 'dokumen')->first();
+        $doc = Storage::get($orang->dokumen);
+
+        $dok_dec = $this->decryptRequests
+                    ->decrypt($encType,
+                            $doc,
+                            $key_dokumen->key,
+                            $key_dokumen->iv);
+        dd($orang);
     }
 }

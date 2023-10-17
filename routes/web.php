@@ -21,7 +21,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/form', [OrangController::class, 'index'])->name('form');
     Route::post('/form', [OrangController::class, 'simpanData'])->name('simpan-data');
+
+    Route::get('/Data', [datacontroller::class, 'index'])->name('Data');
+    Route::get('/download/docs/{orang_id}', [datacontroller::class, 'downloadDocs'])->name('download');
+
 });
 
-Route::get('/Data', [datacontroller::class, 'index'])->name('Data');
 Route::get('/logout', [LogoutController::class, 'logout'])->name('logout');
