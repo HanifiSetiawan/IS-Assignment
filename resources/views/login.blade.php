@@ -21,6 +21,7 @@
             <input type="password" name="password" class="form-control">
         </div>
         <button type="submit" id="submitbutton" class="btn btn-primary">Login</button>
+        <a class="btn btn-success" id="submitbutton" href="{{route('register')}}">Register</a>
     </form>
 </body>
 </html>
