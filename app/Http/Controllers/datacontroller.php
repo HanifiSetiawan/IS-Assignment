@@ -15,7 +15,7 @@ class datacontroller extends Controller
     protected $encryptRequests;
 
     public function __construct(DecryptRequests $decryptRequests, EncryptRequests $encryptRequests) {
-        $encAlgo = 'aes-256-cbc';
+        $encAlgo = config('app.picked_cipher');
         $this->decryptRequests = $decryptRequests;
         $this->decryptRequests->setAlgorithm($encAlgo);
         $this->encryptRequests = $encryptRequests;

@@ -16,7 +16,8 @@ class OrangController extends Controller
 
     public function __construct(EncryptRequests $encryptRequests) {
         $this->encryptRequests = $encryptRequests;
-        $this->encryptRequests->setAlgorithm('aes-256-cbc');
+        $encAlgo = config('app.picked_cipher');
+        $this->encryptRequests->setAlgorithm($encAlgo);
     }
 
     public function index()

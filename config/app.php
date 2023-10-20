@@ -126,6 +126,14 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    'more_cipher' => [
+        'AES-256-CBC',
+        'DES-CBC',
+        'RC4'
+    ],
+
+    'picked_cipher' => 'AES-256-CBC',
+
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver
