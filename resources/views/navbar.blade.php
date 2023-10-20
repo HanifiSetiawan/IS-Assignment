@@ -13,13 +13,10 @@
           <a class="nav-link active" aria-current="page" href="{{route('home')}}">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{route('Data')}}">Profile</a>
+          <a class="nav-link" href="{{route('Data')}}">Data</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{route('form')}}">Form</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{route('Data')}}">Data</a>
         </li>
       </ul>
       <a class="btn btn-primary btn-sm btn-navigate" href="{{route('logout')}}">Logout</a>

@@ -5,11 +5,14 @@ namespace App\Services;
 use Encryption\Encryption;
 
 class DecryptRequests {
-    public function decrypt(string $type, $encrypted, $key, $iv) {
+
+    protected string $encryptionAlgorithm;
+
+    public function decrypt($encrypted, $key, $iv) {
         try {
             $key = base64_decode($key);
             $iv = base64_decode($iv);
-            $encryption = Encryption::getEncryptionObject($type);
+            $encryption = Encryption::getEncryptionObject($this->encryptionAlgorithm);
             $decrypted = $encryption->decrypt($encrypted, $key, $iv, 0);
         } catch (\Throwable $th) {
             return back()->withErrors([
@@ -17,5 +20,9 @@ class DecryptRequests {
             ]);
         }
         return $decrypted;
+    }
+
+    public function setAlgorithm($encryptionAlgorithm) {
+        $this->encryptionAlgorithm = $encryptionAlgorithm;
     }
 }

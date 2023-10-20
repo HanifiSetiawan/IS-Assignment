@@ -16,11 +16,12 @@ class datacontroller extends Controller
 
     public function __construct(DecryptRequests $decryptRequests, EncryptRequests $encryptRequests) {
         $this->decryptRequests = $decryptRequests;
+        $this->decryptRequests->setAlgorithm('aes-256-cbc');
         $this->encryptRequests = $encryptRequests;
+        $this->encryptRequests->setAlgorithm('aes-256-cbc');
     }
     public function index(){
         $user = Auth::user();
-        $encType = 'aes-256-cbc';
 
         if($user) {
             $orangs = $user->orangs()->get();
@@ -33,19 +34,19 @@ class datacontroller extends Controller
 
 
                 $orang->nama = $this->decryptRequests
-                    ->decrypt($encType,
+                    ->decrypt(
                             $orang->nama,
                             $key_nama->key,
                             $key_nama->iv);
                 
                 $orang->nomor_telepon = $this->decryptRequests
-                ->decrypt($encType,
+                ->decrypt(
                         $orang->nomor_telepon,
                         $key_notelp->key,
                         $key_notelp->iv);
 
                 $foto_ktp_dec = $this->decryptRequests
-                    ->decrypt($encType,
+                    ->decrypt(
                             $pic,
                             $key_pic->key,
                             $key_pic->iv);
@@ -59,14 +60,13 @@ class datacontroller extends Controller
     }
 
     public function downloadDocs($orang_id) {
-        $encType = 'aes-256-cbc';
         $orang = Orang::find($orang_id);
         $key_dokumen = $orang->keys()->where('purpose', 'dokumen')->first();
         $filedokumen = $orang->dokumen;
         $doc = Storage::get($filedokumen);
 
         $dok_dec = $this->decryptRequests
-                    ->decrypt($encType,
+                    ->decrypt(
                             $doc,
                             $key_dokumen->key,
                             $key_dokumen->iv);
@@ -79,7 +79,7 @@ class datacontroller extends Controller
 
         $doc = Storage::get($filepath);
 
-        $dokumen_enc = $this->encryptRequests->encrypt(base64_encode($doc), $encType);
+        $dokumen_enc = $this->encryptRequests->encrypt(base64_encode($doc));
         Storage::put($filedokumen, $dokumen_enc['enc']);
 
         $key_dokumen->key = $dokumen_enc['key'];
@@ -91,14 +91,13 @@ class datacontroller extends Controller
     }
 
     public function downloadVids($orang_id) {
-        $encType = 'aes-256-cbc';
         $orang = Orang::find($orang_id);
         $key_video = $orang->keys()->where('purpose', 'video')->first();
         $filevideo = $orang->video;
         $vid = Storage::get($filevideo);
 
         $vid_dec = $this->decryptRequests
-                    ->decrypt($encType,
+                    ->decrypt(
                             $vid,
                             $key_video->key,
                             $key_video->iv);
@@ -111,7 +110,7 @@ class datacontroller extends Controller
         
         $vid = Storage::get($filepath);
 
-        $vid_enc = $this->encryptRequests->encrypt(base64_encode($vid), $encType);
+        $vid_enc = $this->encryptRequests->encrypt(base64_encode($vid));
         Storage::put($filevideo, $vid_enc['enc']);
 
         $key_video->key = $vid_enc['key'];

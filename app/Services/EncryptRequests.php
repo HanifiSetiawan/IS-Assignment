@@ -5,10 +5,13 @@ namespace App\Services;
 use Encryption\Encryption;
 
 class EncryptRequests {
-    public function encrypt($data, string $type) {
+
+    protected string $encryptionAlgorithm;
+
+    public function encrypt($data) {
 
         try {
-            $encryption = Encryption::getEncryptionObject($type);
+            $encryption = Encryption::getEncryptionObject($this->encryptionAlgorithm);
             $iv = $encryption->generateIv();
             $key = random_bytes(32);
             $tag = 0;
@@ -22,5 +25,11 @@ class EncryptRequests {
         }
         
         return ['enc' => $encrypted, 'key' => base64_encode($key), 'iv' => base64_encode($iv)];
+
+        
+    }
+
+    public function setAlgorithm($encryptionAlgorithm) {
+        $this->encryptionAlgorithm = $encryptionAlgorithm;
     }
 }

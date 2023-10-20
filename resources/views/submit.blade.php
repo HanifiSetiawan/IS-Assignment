@@ -8,5 +8,7 @@
 <body>
     @include('navbar')
     <h1>selamat datamu sudah tersimpan! hehe</h1>
+
+    <p>Time to encrypt : {{$time}} Microseconds</p>
 </body>
 </html>

@@ -16,6 +16,7 @@ class OrangController extends Controller
 
     public function __construct(EncryptRequests $encryptRequests) {
         $this->encryptRequests = $encryptRequests;
+        $this->encryptRequests->setAlgorithm('aes-256-cbc');
     }
 
     public function index()
@@ -26,6 +27,7 @@ class OrangController extends Controller
     public function simpanData(Request $request)
     {
         
+        $time_start = microtime(true);
         // Validasi data yang dikirimkan oleh pengguna
         $validator = Validator::make($request->all(),
         [
@@ -42,20 +44,19 @@ class OrangController extends Controller
             return redirect()->back()->withErrors($validator);
         }
 
-        $enctype = 'aes-256-cbc';
 
-        $nama = $this->encryptRequests->encrypt($request->input('nama'), $enctype);
-        $no_telp = $this->encryptRequests->encrypt($request->input('nomor_telepon'), $enctype);
+        $nama = $this->encryptRequests->encrypt($request->input('nama'));
+        $no_telp = $this->encryptRequests->encrypt($request->input('nomor_telepon'));
 
         $foto = $request->file('foto_ktp');
         $dokumen = $request->file('dokumen');
         $video = $request->file('video');
 
-        //base64 endokumen_enc$foto_enc = $this->encryptRequests->encrypt(base64_encode($foto->get()),$enctype);
+        //base64 endokumen_enc$foto_enc = $this->encryptRequests->encrypt(base64_encode($foto->get());
 
-        $dokumen_enc = $this->encryptRequests->encrypt(base64_encode($dokumen->get()), $enctype);
-        $foto_enc = $this->encryptRequests->encrypt(base64_encode($foto->get()), $enctype);
-        $video_enc = $this->encryptRequests->encrypt(base64_encode($video->get()),$enctype);
+        $dokumen_enc = $this->encryptRequests->encrypt(base64_encode($dokumen->get()));
+        $foto_enc = $this->encryptRequests->encrypt(base64_encode($foto->get()));
+        $video_enc = $this->encryptRequests->encrypt(base64_encode($video->get()));
         
         $filefoto = "public/foto_ktp/" . Str::random();
         $filedokumen = "public/dokumen/" . Str::random();
@@ -121,7 +122,11 @@ class OrangController extends Controller
             $key_video->orang_id = $orang_id;
         $key_video->save();
 
-        return view('submit');
+        $time_finish = microtime(true);
+
+        $difference = $time_finish - $time_start;
+
+        return view('submit', ['time' => $difference]);
     }
 
 }
