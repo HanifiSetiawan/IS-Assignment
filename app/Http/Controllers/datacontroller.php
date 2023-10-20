@@ -15,12 +15,16 @@ class datacontroller extends Controller
     protected $encryptRequests;
 
     public function __construct(DecryptRequests $decryptRequests, EncryptRequests $encryptRequests) {
+        $encAlgo = 'aes-256-cbc';
         $this->decryptRequests = $decryptRequests;
-        $this->decryptRequests->setAlgorithm('aes-256-cbc');
+        $this->decryptRequests->setAlgorithm($encAlgo);
         $this->encryptRequests = $encryptRequests;
-        $this->encryptRequests->setAlgorithm('aes-256-cbc');
+        $this->encryptRequests->setAlgorithm($encAlgo);
     }
     public function index(){
+
+        $time_start = microtime(true);
+
         $user = Auth::user();
 
         if($user) {
@@ -55,7 +59,11 @@ class datacontroller extends Controller
 
                 
             }
-            return view('show', ['orangs' => $orangs]);
+
+            $time_finish = microtime(true);
+
+            $difference = $time_finish - $time_start;
+            return view('show', ['orangs' => $orangs, 'time' => $difference]);
         }
     }
 

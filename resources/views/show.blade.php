@@ -21,6 +21,7 @@
     @include('navbar')
 <div class="container">
         <h1>Data</h1>
+        <p>Time decrypting Name & Phone_num : {{$time}} microseconds</p>
         <table class="table table-bordered table-wrap">
             <thead>
                 <tr>
