@@ -26,10 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/download/docs/{orang_id}/{ext}/{file}', [datacontroller::class, 'download'])
         ->name('download')
         ->where('file', '.*');
-    Route::get('/download/video/{orang_id}', [datacontroller::class, 'downloadVids'])->name('video');
-
-
-
+    
 });
 
 Route::get('/logout', [LogoutController::class, 'logout'])->name('logout');

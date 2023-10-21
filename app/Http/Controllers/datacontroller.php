@@ -84,34 +84,4 @@ class datacontroller extends Controller
 
         return $response;
     }
-
-    public function downloadVids($orang_id) {
-        $orang = Orang::find($orang_id);
-        $key_video = $orang->keys()->where('purpose', 'video')->first();
-        $filevideo = $orang->video;
-        $vid = Storage::get($filevideo);
-
-        $vid_dec = $this->decryptRequests
-                    ->decrypt(
-                            $vid,
-                            $key_video->key,
-                            $key_video->iv);
-        Storage::delete($filevideo);
-
-        $filepath = $filevideo . '.' . $orang->ext_vid;
-        Storage::put($filepath, base64_decode($vid_dec));
-
-        $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
-        
-        $vid = Storage::get($filepath);
-
-        $vid_enc = $this->encryptRequests->encrypt(base64_encode($vid));
-        Storage::put($filevideo, $vid_enc['enc']);
-
-        $key_video->key = $vid_enc['key'];
-        $key_video->iv = $vid_enc['iv'];
-        $key_video->save();
-
-        return $response;
-    }
 }
