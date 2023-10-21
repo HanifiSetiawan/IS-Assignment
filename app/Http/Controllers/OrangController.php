@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Key;
+use App\Services\DecryptRequests;
 use App\Services\EncryptRequests;
 use Illuminate\Http\Request;
 use App\Models\Orang;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -13,11 +15,15 @@ use Illuminate\Support\Str;
 class OrangController extends Controller
 {
     protected EncryptRequests $encryptRequests;
+    protected DecryptRequests $decryptRequests;
 
-    public function __construct(EncryptRequests $encryptRequests) {
+
+    public function __construct(EncryptRequests $encryptRequests, DecryptRequests $decryptRequests) {
         $this->encryptRequests = $encryptRequests;
+        $this->decryptRequests = $decryptRequests;
         $encAlgo = config('app.picked_cipher');
         $this->encryptRequests->setAlgorithm($encAlgo);
+        $this->decryptRequests->setAlgorithm($encAlgo);
     }
 
     public function index()
@@ -45,83 +51,51 @@ class OrangController extends Controller
             return redirect()->back()->withErrors($validator);
         }
 
+        $encryptor = function ($data, $key) {
+            return $this->encryptRequests->encrypt_with_key($data, $key);
+        };
+        $decryptor = function ($data, $key) {
+            return $this->decryptRequests->decrypt($data, $key);
+        };
 
-        $nama = $this->encryptRequests->encrypt($request->input('nama'));
-        $no_telp = $this->encryptRequests->encrypt($request->input('nomor_telepon'));
+        $user = Auth::user();
+        $app_key = config('app.key');
+        $key = $decryptor($user->keys['key'], $app_key);
+
+
+        $nama = $encryptor($request->input('nama'), $key);
+        $no_telp = $encryptor($request->input('nomor_telepon'), $key);
 
         $foto = $request->file('foto_ktp');
         $dokumen = $request->file('dokumen');
         $video = $request->file('video');
 
-        //base64 endokumen_enc$foto_enc = $this->encryptRequests->encrypt(base64_encode($foto->get());
 
-        $dokumen_enc = $this->encryptRequests->encrypt(base64_encode($dokumen->get()));
-        $foto_enc = $this->encryptRequests->encrypt(base64_encode($foto->get()));
-        $video_enc = $this->encryptRequests->encrypt(base64_encode($video->get()));
+
+        $dokumen_enc = $encryptor(base64_encode($dokumen->get()), $key);
+        $foto_enc = $encryptor(base64_encode($foto->get()), $key);
+        $video_enc = $encryptor(base64_encode($video->get()), $key);
         
         $filefoto = "public/foto_ktp/" . Str::random();
         $filedokumen = "public/dokumen/" . Str::random();
         $filevideo = "public/video/" . Str::random();
 
-        Storage::put($filefoto, $foto_enc['enc']);
-        Storage::put($filedokumen, $dokumen_enc['enc']);
-        Storage::put($filevideo, $video_enc['enc']);
+        Storage::put($filefoto, $foto_enc);
+        Storage::put($filedokumen, $dokumen_enc);
+        Storage::put($filevideo, $video_enc);
 
         $orang = new Orang;
-        $orang->nama = $nama['enc'];
-        $orang->nomor_telepon = $no_telp['enc'];
-        $orang->foto_ktp = $filefoto;
+        $orang->nama = $nama;
+        $orang->nomor_telepon = $no_telp;
+        $orang->foto_ktp = $encryptor($filefoto, $key);
         $orang->ext_foto = $foto->getClientOriginalExtension();
-        $orang->dokumen = $filedokumen;
+        $orang->dokumen = $encryptor($filedokumen, $key);
         $orang->ext_doc = $dokumen->getClientOriginalExtension();
-        $orang->video = $filevideo;
+        $orang->video = $encryptor($filevideo, $key);
         $orang->ext_vid = $video->getClientOriginalExtension();
-        $orang->user_id = auth()->id();
+        $orang->user_id = $user->id;
         $orang->save();
         
-        
-        
-        $orang_id = $orang->id;
-
-        $key_nama = new Key;
-            $key_nama->purpose = 'nama';
-            $key_nama->iv = $nama['iv'];
-            $key_nama->key = $nama['key'];
-            $key_nama->user_id = auth()->id();
-            $key_nama->orang_id = $orang_id;
-        $key_nama->save();
-        
-        $key_notelp = new Key;
-            $key_notelp->purpose = 'nomor_telepon';
-            $key_notelp->iv = $no_telp['iv'];
-            $key_notelp->key = $no_telp['key'];
-            $key_notelp->user_id = auth()->id();
-            $key_notelp->orang_id = $orang_id;
-        $key_notelp->save();
-
-        $key_foto = new Key;
-            $key_foto->purpose = 'foto_ktp';
-            $key_foto->iv = $foto_enc['iv'];
-            $key_foto->key = $foto_enc['key'];
-            $key_foto->user_id = auth()->id();
-            $key_foto->orang_id = $orang_id;
-        $key_foto->save();
-
-        $key_dokumen = new Key;
-            $key_dokumen->purpose = 'dokumen';
-            $key_dokumen->iv = $dokumen_enc['iv'];
-            $key_dokumen->key = $dokumen_enc['key'];
-            $key_dokumen->user_id = auth()->id();
-            $key_dokumen->orang_id = $orang_id;
-        $key_dokumen->save();
-
-        $key_video = new Key;
-            $key_video->purpose = 'video';
-            $key_video->iv = $video_enc['iv'];
-            $key_video->key = $video_enc['key'];
-            $key_video->user_id = auth()->id();
-            $key_video->orang_id = $orang_id;
-        $key_video->save();
 
         $time_finish = microtime(true);
 

@@ -29,6 +29,22 @@ class EncryptRequests {
         
     }
 
+    public function encrypt_with_key($data, $key) {
+        try {
+            $encryption = Encryption::getEncryptionObject($this->encryptionAlgorithm);
+            $iv = substr(config('app.key'), 0, 16);
+            $tag = 0;
+
+            $encrypted = $encryption->encrypt($data, $key, $iv, $tag);
+            
+        } catch (\Throwable $th) {
+            print($th);
+            return NULL;
+        }
+        
+        return $encrypted;
+    }
+
     public function setAlgorithm($encryptionAlgorithm) {
         $this->encryptionAlgorithm = $encryptionAlgorithm;
     }

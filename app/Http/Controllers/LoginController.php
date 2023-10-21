@@ -18,8 +18,7 @@ class LoginController extends Controller
             'email' => 'required|email',
             'password' => 'required'
         ]);
-            
-        
+
         if(Auth::attempt($validator)) {
             $request->session()->regenerate();
             return redirect()->intended('/form');

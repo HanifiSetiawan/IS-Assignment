@@ -21,9 +21,6 @@
     @include('navbar')
 <div class="container">
         <h1>Data</h1>
-        @isset($orangs)
-        <p>Time decrypting Name & Phone_num : {{$time}} microseconds</p>
-        @endisset
         <table class="table table-bordered table-wrap">
             <thead>
                 <tr>
@@ -43,16 +40,19 @@
                         <img class="foto" src="data:image/png;base64,{{ $orang->foto_ktp }}" alt="Foto KTP">
                     </td>
                     <td>
-                        <a class="btn btn-primary" href="{{ route('document', ['orang_id' => $orang->id]) }}">Download dokumen</a>
+                        <a class="btn btn-primary" href="{{ route('download', ['orang_id' => $orang->id, 'ext' => $orang->ext_doc, 'file' => $orang->dokumen]) }}">Download dokumen</a>
 
                     </td>
                     <td>
-                        <a class="btn btn-primary" href="{{ route('video', ['orang_id' => $orang->id]) }}" download>Download video</a>
+                        <a class="btn btn-primary" href="{{ route('download', ['orang_id' => $orang->id, 'ext' => $orang->ext_vid, 'file' => $orang->video]) }}">Download video</a>
                     </td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
+        @isset($orangs)
+        <p>Time to get page : {{$time}} microseconds</p>
+        @endisset
     </div>
 </body>
 </html>

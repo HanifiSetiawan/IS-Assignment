@@ -9,12 +9,7 @@ class Key extends Model
 {
     use HasFactory;
 
-    protected $hidden = ['iv', 'key'];
-
-    public function orangs()
-    {
-        return $this->belongsTo(Orang::class);
-    }
+    protected $hidden = ['key'];
 
     public function users()
     {

@@ -25,36 +25,28 @@ class datacontroller extends Controller
 
         $time_start = microtime(true);
 
+        $decryptor = function ($data, $key) {
+            return $this->decryptRequests->decrypt($data, $key);
+        };
+
         $user = Auth::user();
 
         if($user) {
+            $app_key = config('app.key');
+            $key = $decryptor($user->keys['key'], $app_key);
+
             $orangs = $user->orangs()->get();
             foreach ($orangs as $orang) {
-                $key_nama = $orang->keys()->where('purpose', 'nama')->first();
-                $key_notelp = $orang->keys()->where('purpose', 'nomor_telepon')->first();
-                $key_pic = $orang->keys()->where('purpose', 'foto_ktp')->first();
 
-                $pic = Storage::get($orang->foto_ktp);
+                $foto_ktp_filepath = $decryptor($orang->foto_ktp, $key);
+
+                $pic = Storage::get($foto_ktp_filepath);
 
 
-                $orang->nama = $this->decryptRequests
-                    ->decrypt(
-                            $orang->nama,
-                            $key_nama->key,
-                            $key_nama->iv);
-                
-                $orang->nomor_telepon = $this->decryptRequests
-                ->decrypt(
-                        $orang->nomor_telepon,
-                        $key_notelp->key,
-                        $key_notelp->iv);
+                $orang->nama = $decryptor($orang->nama, $key);
+                $orang->nomor_telepon = $decryptor($orang->nomor_telepon, $key);
 
-                $foto_ktp_dec = $this->decryptRequests
-                    ->decrypt(
-                            $pic,
-                            $key_pic->key,
-                            $key_pic->iv);
-
+                $foto_ktp_dec = $decryptor($pic, $key);
                 $orang->foto_ktp = $foto_ktp_dec;
 
                 
@@ -67,32 +59,27 @@ class datacontroller extends Controller
         }
     }
 
-    public function downloadDocs($orang_id) {
+    public function download($orang_id, $ext, $file) {
+
+        $decryptor = function ($data, $key) {
+            return $this->decryptRequests->decrypt($data, $key);
+        };
+
+        $user = Auth::user();
+        $app_key = config('app.key');
+        $key = $decryptor($user->keys['key'], $app_key);
+
+        $file = $decryptor($file, $key);
+
         $orang = Orang::find($orang_id);
-        $key_dokumen = $orang->keys()->where('purpose', 'dokumen')->first();
-        $filedokumen = $orang->dokumen;
-        $doc = Storage::get($filedokumen);
+        $doc = Storage::get($file);
 
-        $dok_dec = $this->decryptRequests
-                    ->decrypt(
-                            $doc,
-                            $key_dokumen->key,
-                            $key_dokumen->iv);
-        Storage::delete($filedokumen);
+        $dok_dec = $decryptor($doc, $key);
 
-        $filepath = $filedokumen . '.' . $orang->ext_doc;
+        $filepath = 'file' . '.' . $ext;
         Storage::put($filepath, base64_decode($dok_dec));
 
         $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
-
-        $doc = Storage::get($filepath);
-
-        $dokumen_enc = $this->encryptRequests->encrypt(base64_encode($doc));
-        Storage::put($filedokumen, $dokumen_enc['enc']);
-
-        $key_dokumen->key = $dokumen_enc['key'];
-        $key_dokumen->iv = $dokumen_enc['iv'];
-        $key_dokumen->save();
 
 
         return $response;

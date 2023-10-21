@@ -23,7 +23,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/form', [OrangController::class, 'simpanData'])->name('simpan-data');
 
     Route::get('/Data', [datacontroller::class, 'index'])->name('Data');
-    Route::get('/download/docs/{orang_id}', [datacontroller::class, 'downloadDocs'])->name('document');
+    Route::get('/download/docs/{orang_id}/{ext}/{file}', [datacontroller::class, 'download'])
+        ->name('download')
+        ->where('file', '.*');
     Route::get('/download/video/{orang_id}', [datacontroller::class, 'downloadVids'])->name('video');
 
 

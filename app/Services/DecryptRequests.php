@@ -8,16 +8,14 @@ class DecryptRequests {
 
     protected string $encryptionAlgorithm;
 
-    public function decrypt($encrypted, $key, $iv) {
+    public function decrypt($encrypted, $key) {
         try {
-            $key = base64_decode($key);
-            $iv = base64_decode($iv);
+            $iv = substr(config('app.key'), 0, 16);
             $encryption = Encryption::getEncryptionObject($this->encryptionAlgorithm);
             $decrypted = $encryption->decrypt($encrypted, $key, $iv, 0);
         } catch (\Throwable $th) {
-            return back()->withErrors([
-                'decryption' => 'Decryption has failed',
-            ]);
+            print($th);
+            return NULL;
         }
         return $decrypted;
     }
