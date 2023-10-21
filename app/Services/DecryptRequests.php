@@ -10,11 +10,10 @@ class DecryptRequests {
 
     public function decrypt($encrypted, $key) {
         try {
-            $iv = substr(config('app.key'), 0, 16);
             $encryption = Encryption::getEncryptionObject($this->encryptionAlgorithm);
+            $iv = $this->getIv($this->encryptionAlgorithm);
             $decrypted = $encryption->decrypt($encrypted, $key, $iv, 0);
         } catch (\Throwable $th) {
-            print($th);
             return NULL;
         }
         return $decrypted;
@@ -23,4 +22,19 @@ class DecryptRequests {
     public function setAlgorithm($encryptionAlgorithm) {
         $this->encryptionAlgorithm = $encryptionAlgorithm;
     }
+
+    function getIv($algorithm) {
+        switch ($algorithm) {
+            case 'AES-256-CBC':
+                $iv = substr(config('app.key'), 0, 16);
+                break;
+            case 'DES-CBC':
+                $iv = substr(config('app.key'), 0, 8);
+                break;
+            default:
+                $iv = '0';
+                break;
+        }
+        return $iv;
+    } 
 }

@@ -32,13 +32,12 @@ class EncryptRequests {
     public function encrypt_with_key($data, $key) {
         try {
             $encryption = Encryption::getEncryptionObject($this->encryptionAlgorithm);
-            $iv = substr(config('app.key'), 0, 16);
+            $iv = $this->getIv($this->encryptionAlgorithm);
             $tag = 0;
 
             $encrypted = $encryption->encrypt($data, $key, $iv, $tag);
             
         } catch (\Throwable $th) {
-            print($th);
             return NULL;
         }
         
@@ -47,5 +46,20 @@ class EncryptRequests {
 
     public function setAlgorithm($encryptionAlgorithm) {
         $this->encryptionAlgorithm = $encryptionAlgorithm;
+    }
+
+    function getIv($algorithm) {
+        switch ($algorithm) {
+            case 'AES-256-CBC':
+                $iv = substr(config('app.key'), 0, 16);
+                break;
+            case 'DES-CBC':
+                $iv = substr(config('app.key'), 0, 8);
+                break;
+            default:
+                $iv = '0';
+                break;
+        }
+        return $iv;
     }
 }
