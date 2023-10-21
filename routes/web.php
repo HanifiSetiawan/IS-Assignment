@@ -25,6 +25,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/Data', [datacontroller::class, 'index'])->name('Data');
     Route::get('/download/{orang_id}/{ext}/{file}', [datacontroller::class, 'download'])
         ->name('download')
+        ->where('orang_id', '.*')
+        ->where('ext', '.*')
         ->where('file', '.*');
     
 });
