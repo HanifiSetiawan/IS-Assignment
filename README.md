@@ -31,194 +31,153 @@
 
 ## Login Page
 ![Login Page](https://media.discordapp.net/attachments/893030036700012585/1165212066412515389/Screenshot_668.png?ex=6546074d&is=6533924d&hm=5a64eb72965104145ef75cfca5c0eda0e9044da0274404a2fa47689f3af6b702&=&width=1248&height=702)
-### PHP
+### Controller
+#### Login
 ```php
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ asset('css/login.css') }}">
-</head>
-<body>
-    <form action="{{ route('login') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        <h1>Login</h1>
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" name="email" class="form-control">
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" name="password" class="form-control">
-        </div>
-        <button type="submit" id="submitbutton" class="btn btn-primary">Login</button>
-        <a class="btn btn-success" id="submitbutton" href="{{route('register')}}">Register</a>
-    </form>
-</body>
-</html>
+<?php
 
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
+
+class LoginController extends Controller
+{
+    public function index() {
+        return view('login');
+    }
+
+    public function login(Request $request) {
+        $validator = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        if(Auth::attempt($validator)) {
+            $request->session()->regenerate();
+            return redirect()->intended('/form');
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+
+    }
+    
+}
 ```
+#### Logout
+```php
+<?php
 
-### CSS
+namespace App\Http\Controllers;
 
-```css
-h1 {
-    text-align: center;
-    padding-top: 10px;
-    margin: auto;
-    margin-bottom: 1vw;
-}
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-form {
-    position: relative;
-    top: 20vh;
-    margin: auto;
-    width: 30%;
-    height: 55%;
-    padding: 1% 3% 5% 3%;
-    border: 5px solid black;
-    color: rgba(0, 0, 0, 0.966);
-    background-color: aliceblue;
-}
+class LogoutController extends Controller
+{
+    public function logout() {
+        Auth::logout();
 
-body {
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-image:url("../images/FTIF-Informatika-01-e1638867228268.jpg")
-}
-.form-group {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    margin-left: 3%;
-    margin-right: 6%;
-    margin-top: 3%;
-}
-
-.form-group label {
-    margin-bottom: 5%;
-    scale: 100%;
-}
-
-#submitbutton {
-    position: relative;
-    margin-top: 5vh;
-    margin-left: 2vw;
-    margin-right: 3vw;
-    width: 82.5%;
+        return redirect('login');
+    }
 }
 ```
 
 ## Register Page
 ![Register](https://media.discordapp.net/attachments/893030036700012585/1165212067343646791/Screenshot_669.png?ex=6546074d&is=6533924d&hm=b3c6cde896b0549e8c76cf45eecee8742badfb9f500d0255650bb798e3b1f9fc&=&width=1248&height=702)
 
-### PHP
+### Controller
 ```php
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ asset('css/login.css') }}">
-</head>
-<body>
-    <form action="{{ route('register') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        <h1>Register</h1>
-        <div class="form-group">
-            <label for="name">Full name</label>
-            <input type="text" name="name" class="form-control">
-            @error('name')
-            <div class="error">{{ $message }}</div>
-            @enderror
-        </div>
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" name="email" class="form-control">
-            @error('email')
-            <div class="error">{{ $message }}</div>
-            @enderror
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" name="password" class="form-control">
-            @error('password')
-            <div class="error">{{ $message }}</div>
-            @enderror
-        </div>
-        <button type="submit" id="submitbutton" class="btn btn-primary">Register</button>
-    </form>
+<?php
 
-</body>
-</html>
-```
+namespace App\Http\Controllers;
 
-### CSS
-```css
-h1 {
-    text-align: center;
-    padding-top: 10px;
-    margin: auto;
-    margin-bottom: 1vw;
-}
+use App\Models\Key;
+use App\Models\User;
+use App\Services\EncryptRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
 
-form {
-    position: relative;
-    top: 20vh;
-    margin: auto;
-    width: 30%;
-    height: 55%;
-    padding: 1% 3% 5% 3%;
-    border: 5px solid black;
-    color: rgba(0, 0, 0, 0.966);
-    background-color: aliceblue;
-}
+class RegisterController extends Controller
+{
+    protected EncryptRequests $encryptRequests;
 
-body {
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-image:url("../images/FTIF-Informatika-01-e1638867228268.jpg")
-}
-.form-group {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    margin-left: 3%;
-    margin-right: 6%;
-    margin-top: 3%;
-}
+    public function __construct(EncryptRequests $encryptRequests) {
+        $this->encryptRequests = $encryptRequests;
+        $encAlgo = config('app.picked_cipher');
+        $this->encryptRequests->setAlgorithm($encAlgo);
+    }
+    public function index() {
+        return view('register');
+    }
 
-.form-group label {
-    margin-bottom: 5%;
-    scale: 100%;
-}
+    public function register(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'ascii'],
+            'email' => ['required', 'email', 'unique:users,name'],
+            'password' => ['required', Password::min(8)
+                                            ->letters()
+                                            ->mixedCase()
+                                            ->numbers()]
+        ]);
 
-#submitbutton {
-    position: relative;
-    margin-top: 5vh;
-    margin-left: 2vw;
-    margin-right: 3vw;
-    width: 82.5%;
+        if($validator->stopOnFirstFailure()->fails()) {
+            return back()->withErrors($validator);
+        }
+
+        $encryptor = function ($data, $key) {
+            return $this->encryptRequests->encrypt_with_key($data, $key);
+        };
+
+        $validated = $validator->validated();
+
+        $app_key = config('app.key');
+
+        
+        $user_key = random_bytes(32);
+
+        $user = new User;
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        $user->password = bcrypt($validated['password']);
+        $user->save();
+
+        $key_user = new Key;
+        $key_user->key = $encryptor($user_key, $app_key);
+        $key_user->user_id = $user->id;
+        $key_user->save();
+
+        return view('login');
+
+    }
 }
 ```
 
 ## Home Page
 ![Home](https://media.discordapp.net/attachments/893030036700012585/1165212074796929034/Screenshot_670.png?ex=6546074f&is=6533924f&hm=2306ecb358f54ad476622edf4a4e8d0ff6f89daa342d694ec305099fa57777d3&=&width=1248&height=702)
 
-### PHP
+### Controller
 ```php
-@include('navbar')
-<div>
-    <h1>Welcome to The App</h1>
-</div>
+<?php
 
+namespace App\Http\Controllers;
+
+use Auth;
+use Illuminate\Http\Request;
+
+class HomeController extends Controller
+{
+    public function index() {
+        $user = Auth::user()->name;
+        return view('home', ['user' => $user]);
+    }
+}
 ```
 
 ## Form Page
