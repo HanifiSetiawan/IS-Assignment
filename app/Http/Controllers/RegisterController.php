@@ -57,6 +57,7 @@ class RegisterController extends Controller
         $key_user = new Key;
         $key_user->key = $encryptor($user_key, $app_key);
         $key_user->user_id = $user->id;
+        $key_user->type = 'sym';
         $key_user->save();
 
         return view('login');

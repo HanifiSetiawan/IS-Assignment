@@ -36,5 +36,5 @@ class DecryptRequests {
                 break;
         }
         return $iv;
-    } 
+    }
 }

@@ -18,6 +18,9 @@
         <li class="nav-item">
           <a class="nav-link" href="{{route('form')}}">Form</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{route('access')}}">Data Access</a>
+        </li>
       </ul>
       <a class="btn btn-primary btn-sm btn-navigate" href="{{route('logout')}}">Logout</a>
     </div>
