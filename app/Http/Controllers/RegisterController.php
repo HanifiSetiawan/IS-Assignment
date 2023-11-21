@@ -58,6 +58,9 @@ class RegisterController extends Controller
         $key_user->key = $encryptor($user_key, $app_key);
         $key_user->user_id = $user->id;
         $key_user->type = 'sym';
+        if(empty($key_user->key))
+            return back()->withErrors(['encfail' => 'key encryption process has failed']);   
+
         $key_user->save();
 
         return view('login');

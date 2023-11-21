@@ -34,6 +34,9 @@
             @enderror
         </div>
         <button type="submit" id="submitbutton" class="btn btn-primary">Register</button>
+        @error('encfail')
+            <div class="error">{{ $message }}</div>
+        @enderror
     </form>
 
 </body>
