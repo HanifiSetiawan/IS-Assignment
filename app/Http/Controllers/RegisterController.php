@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use Spatie\Crypto\Rsa\KeyPair;
 
 class RegisterController extends Controller
 {
@@ -59,11 +60,53 @@ class RegisterController extends Controller
         $key_user->user_id = $user->id;
         $key_user->type = 'sym';
         if(empty($key_user->key))
-            return back()->withErrors(['encfail' => 'key encryption process has failed']);   
+            return back()->withErrors(['encfail' => 'key encryption process (symmetrical) has failed']);   
 
         $key_user->save();
 
+        $asym = $this->createKeys();
+
+        $key_priv = new Key;
+        $key_priv->key = $asym['private'];
+        $key_priv->user_id = $user->id;
+        $key_priv->type = 'priv';
+        if(empty($key_priv->key))
+            return back()->withErrors(['encfail' => 'key encryption process (private) has failed']);
+        $key_priv->save();
+
+
+        $key_pub = new Key;
+        $key_pub->key = $asym['public'];
+        $key_pub->user_id = $user->id;
+        $key_pub->type = 'pub';
+        if(empty($key_pub->key))
+        return back()->withErrors(['encfail' => 'key encryption process (public) has failed']);
+        $key_pub->save();
+
+
         return view('login');
 
+    }
+
+    private function createKeys() {
+        $config = [
+            'private_key_bits' => 2048,
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+        ];
+
+        $pkey = openssl_pkey_new($config);
+
+        if ($pkey == false) {
+            $config['config'] = '/opt/homebrew/etc/openssl@3/openssl.cnf';
+        }
+
+
+        $pkey = openssl_pkey_new($config);
+        openssl_pkey_export($pkey, $privateKey, NULL, $config);
+
+        $publicKey = openssl_pkey_get_details($pkey);
+        $publicKey = $publicKey["key"];
+
+        return ['private' => $privateKey, 'public' => $publicKey];
     }
 }
