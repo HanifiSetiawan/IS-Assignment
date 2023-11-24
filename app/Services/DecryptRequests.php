@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Encryption\Encryption;
+use Illuminate\Support\Facades\Log;
 
 class DecryptRequests {
 
@@ -14,6 +15,7 @@ class DecryptRequests {
             $iv = $this->getIv($this->encryptionAlgorithm);
             $decrypted = $encryption->decrypt($encrypted, $key, $iv, 0);
         } catch (\Throwable $th) {
+            Log::error($th->getMessage());
             return NULL;
         }
         return $decrypted;

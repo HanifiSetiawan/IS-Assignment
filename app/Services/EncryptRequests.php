@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use Encryption\Encryption;
+use Illuminate\Support\Facades\Log;
+
 
 class EncryptRequests {
 
@@ -38,6 +40,7 @@ class EncryptRequests {
             $encrypted = $encryption->encrypt($data, $key, $iv, $tag);
             
         } catch (\Throwable $th) {
+            Log::error($th->getMessage());
             return NULL;
         }
         
