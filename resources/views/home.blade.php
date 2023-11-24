@@ -5,6 +5,16 @@
 <div>
     <!-- I begin to speak only when I am certain what I will say is not better left unsaid. - Cato the Younger -->
     <h1>Welcome to The App, {{ $user }}</h1>
+    @if(session()->has('success'))
+        <div class="alert alert-success" style="margin-top: 5vh;">
+            {{ session('success') }}
+        </div>
+        @endif
+        @if ($errors->any())
+        <div class="alert alert-danger" style="margin-top: 5vh;">
+            {{ $errors->first() }}
+        </div>
+    @endif
 
 
     <div class="boxing">
@@ -24,11 +34,36 @@
                         <td> {{ $item->from }} </td>
                         <td> {{ $item->state }} </td>
                         <td>
-                            <a class="btn btn-primary req" href="">Accept</a>
-                            <a class="btn btn-primary req" href="">Reject</a>
+                            <div class="res">
+                                @if($item->state != 'accepted')
+                                <form action="{{ route('respond') }}" method="post">
+                                    @csrf
+                                    <input type="hidden" name="state" value="accepted">
+                                    <input type="hidden" name="from" value="{{ $item->from }}">
+                                    <input type="hidden" name="to" value="{{ $item->to }}">
+                                    <button type="submit" class="btn btn-primary req">Accept</button>
+                                </form>
+                                @endif
 
-                            @if($item->state == 'accepted')
-                            <a class="btn btn-primary req" href="">Send email</a>
+                                @if($item->state != 'rejected')
+                                <form action="{{ route('respond') }}" method="post">
+                                    @csrf
+                                    <input type="hidden" name="state" value="rejected">
+                                    <input type="hidden" name="from" value="{{ $item->from }}">
+                                    <input type="hidden" name="to" value="{{ $item->to }}">
+                                    <button type="submit" class="btn btn-primary req">Reject</button>
+                                </form>
+                                @endif
+
+                                @if($item->state == 'accepted')
+                                <form action="{{ route('send') }}" method="post">
+                                    @csrf
+                                    <input type="hidden" name="state" value="email">
+                                    <input type="hidden" name="from" value="{{ $item->from }}">
+                                    <input type="hidden" name="to" value="{{ $item->to }}">
+                                    <button type="submit" class="btn btn-primary req">Send Email</button>
+                                </form>
+                            </div>
                             @endif
                         </td>
                     @endforeach

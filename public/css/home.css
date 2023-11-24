@@ -10,15 +10,21 @@
     background-color: aliceblue;
 }
 
-h1 {
+h1,
+.alert {
     margin-left: 5vh;
+    max-width: 50%;
 }
 
 .table-wrap {
     word-wrap: break-word;
 }
 
-a.req{
-    margin-left: 1%;
-    margin-right: 1%;
+button.req {
+    position: relative;
+    margin-right: 3vh;
+}
+
+div.res {
+    display: inline-flex;
 }
