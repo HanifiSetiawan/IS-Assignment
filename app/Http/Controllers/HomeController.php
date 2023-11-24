@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SendKey;
 use App\Models\DataRequest;
+use App\Models\User;
 use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Mail;
 
 class HomeController extends Controller
 {
@@ -54,5 +57,11 @@ class HomeController extends Controller
         }
 
         $validated = $validator->validated();
+
+        $respondee = User::where('email','=', $validated['to'])->first();
+
+        Mail::to($validated['from'])->send(new SendKey);
+
+        return back()->with('success','Email sent successfully');
     }
 }
