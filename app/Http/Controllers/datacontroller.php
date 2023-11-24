@@ -39,9 +39,7 @@ class datacontroller extends Controller
             $orangs = $user->orangs()->get();
             foreach ($orangs as $orang) {
 
-                $foto_ktp_filepath = $decryptor($orang->foto_ktp, $key);
-
-                $pic = Storage::get($foto_ktp_filepath);
+                $pic = Storage::get($orang->foto_ktp);
 
 
                 $orang->nama = $decryptor($orang->nama, $key);
@@ -70,7 +68,6 @@ class datacontroller extends Controller
         $app_key = config('app.key');
         $key = $decryptor($user->getUserKey('sym'), $app_key);
 
-        $file = $decryptor($file, $key);
 
         $doc = Storage::get($file);
 

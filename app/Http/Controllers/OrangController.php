@@ -76,9 +76,9 @@ class OrangController extends Controller
         $foto_enc = $encryptor(base64_encode($foto->get()), $key);
         $video_enc = $encryptor(base64_encode($video->get()), $key);
         
-        $filefoto = "public/foto_ktp/" . Str::uuid()->toString();
-        $filedokumen = "public/dokumen/" . Str::uuid()->toString();
-        $filevideo = "public/video/" . Str::uuid()->toString();
+        $filefoto = Str::uuid()->toString();
+        $filedokumen = Str::uuid()->toString();
+        $filevideo = Str::uuid()->toString();
 
         Storage::put($filefoto, $foto_enc);
         Storage::put($filedokumen, $dokumen_enc);
@@ -87,11 +87,11 @@ class OrangController extends Controller
         $orang = new Orang;
         $orang->nama = $nama;
         $orang->nomor_telepon = $no_telp;
-        $orang->foto_ktp = $encryptor($filefoto, $key);
+        $orang->foto_ktp = $filefoto;
         $orang->ext_foto = $foto->getClientOriginalExtension();
-        $orang->dokumen = $encryptor($filedokumen, $key);
+        $orang->dokumen = $filedokumen;
         $orang->ext_doc = $dokumen->getClientOriginalExtension();
-        $orang->video = $encryptor($filevideo, $key);
+        $orang->video = $filevideo;
         $orang->ext_vid = $video->getClientOriginalExtension();
         $orang->user_id = $user->id;
         $orang->save();
