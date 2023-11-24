@@ -76,9 +76,9 @@ class OrangController extends Controller
         $foto_enc = $encryptor(base64_encode($foto->get()), $key);
         $video_enc = $encryptor(base64_encode($video->get()), $key);
         
-        $filefoto = "public/foto_ktp/" . Str::random();
-        $filedokumen = "public/dokumen/" . Str::random();
-        $filevideo = "public/video/" . Str::random();
+        $filefoto = "public/foto_ktp/" . Str::uuid()->toString();
+        $filedokumen = "public/dokumen/" . Str::uuid()->toString();
+        $filevideo = "public/video/" . Str::uuid()->toString();
 
         Storage::put($filefoto, $foto_enc);
         Storage::put($filedokumen, $dokumen_enc);
