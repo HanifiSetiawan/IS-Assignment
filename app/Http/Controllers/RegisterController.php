@@ -67,7 +67,7 @@ class RegisterController extends Controller
         $asym = $this->createKeys();
 
         $key_priv = new Key;
-        $key_priv->key = $asym['private'];
+        $key_priv->key = $encryptor($asym['private'], $app_key);
         $key_priv->user_id = $user->id;
         $key_priv->type = 'priv';
         if(empty($key_priv->key))
@@ -76,7 +76,7 @@ class RegisterController extends Controller
 
 
         $key_pub = new Key;
-        $key_pub->key = $asym['public'];
+        $key_pub->key = $encryptor($asym['public'], $app_key);
         $key_pub->user_id = $user->id;
         $key_pub->type = 'pub';
         if(empty($key_pub->key))
