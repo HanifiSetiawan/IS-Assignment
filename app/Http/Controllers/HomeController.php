@@ -11,8 +11,21 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Mail;
 
+use App\Services\DecryptRequests;
+use App\Services\EncryptRequests;
+
 class HomeController extends Controller
 {
+    protected $decryptRequests;
+    protected $encryptRequests;
+
+    public function __construct(DecryptRequests $decryptRequests, EncryptRequests $encryptRequests) {
+        $encAlgo = config('app.picked_cipher');
+        $this->decryptRequests = $decryptRequests;
+        $this->decryptRequests->setAlgorithm($encAlgo);
+        $this->encryptRequests = $encryptRequests;
+        $this->encryptRequests->setAlgorithm($encAlgo);
+    }
     public function index() {
         $user = Auth::user();
 
@@ -56,19 +69,35 @@ class HomeController extends Controller
             return back()->withErrors($validator);
         }
 
+        $user = Auth::user();
+
         $validated = $validator->validated();
 
-        $respondee = User::where('email','=', $validated['to'])->exists();
+        $respondeeExists = User::where('email','=', $validated['to'])->exists();
 
-        if(!$respondee) {
+        if(!$respondeeExists) {
             return back()->with('error',"User doesn't exist");
         }
 
-        $public = User::where('email','=', $validated['from'])->first()->keys()->where("type","=", 'pub')->first();
+        $respondee = User::where('email','=', $validated['from'])->first();
+        $public = $respondee->getUserKey('pub');
 
-        dd($public);
+        
+        $decryptor = function ($data, $key) {
+            return $this->decryptRequests->decrypt($data, $key);
+        };
 
-        Mail::to($validated['from'])->send(new SendKey($validated['to'], 'testkey'));
+        $app_key = config('app.key');
+
+        $dec_public = $decryptor($public, $app_key);
+        $dec_public = openssl_pkey_get_public($dec_public);
+        $user_symkey = $user->getUserKey('sym');
+
+        openssl_public_encrypt($user_symkey, $encryptedData, $dec_public);
+        
+
+        Mail::to($validated['from'])->send(new SendKey($validated['to'], $encryptedData));
+
 
         return back()->with('success','Email sent successfully');
     }

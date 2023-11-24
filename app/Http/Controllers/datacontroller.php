@@ -33,7 +33,8 @@ class datacontroller extends Controller
 
         if($user) {
             $app_key = config('app.key');
-            $key = $decryptor($user->keys['key'], $app_key);
+
+            $key = $decryptor($user->getUserKey('sym'), $app_key);
 
             $orangs = $user->orangs()->get();
             foreach ($orangs as $orang) {
@@ -67,11 +68,10 @@ class datacontroller extends Controller
 
         $user = Auth::user();
         $app_key = config('app.key');
-        $key = $decryptor($user->keys['key'], $app_key);
+        $key = $decryptor($user->getUserKey('sym'), $app_key);
 
         $file = $decryptor($file, $key);
 
-        $orang = Orang::find($orang_id);
         $doc = Storage::get($file);
 
         $dok_dec = $decryptor($doc, $key);

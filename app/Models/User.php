@@ -52,4 +52,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Key::class, 'user_id');
     }
+
+    public function getUserKey(string $type)
+    {
+        $key = $this->keys()->where('type', $type)->first();
+
+
+        if ($key) {
+            return $key->key;
+        }   
+
+        return null;
+    }
 }

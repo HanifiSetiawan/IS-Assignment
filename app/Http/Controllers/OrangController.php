@@ -60,7 +60,7 @@ class OrangController extends Controller
 
         $user = Auth::user();
         $app_key = config('app.key');
-        $key = $decryptor($user->keys['key'], $app_key);
+        $key = $decryptor($user->getUserKey('sym'), $app_key);
 
 
         $nama = $encryptor($request->input('nama'), $key);
