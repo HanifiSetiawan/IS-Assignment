@@ -50,6 +50,6 @@ class User extends Authenticatable
 
     public function keys()
     {
-        return $this->hasOne(Key::class, 'user_id');
+        return $this->hasMany(Key::class, 'user_id');
     }
 }

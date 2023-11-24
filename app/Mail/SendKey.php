@@ -17,7 +17,7 @@ class SendKey extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public function __construct(private $sender, private $key)
     {
         //
     }
@@ -41,6 +41,7 @@ class SendKey extends Mailable
     {
         return new Content(
             view: 'mail_key',
+            with: ['name' => $this->sender, 'key' => $this->key],
         );
     }
 

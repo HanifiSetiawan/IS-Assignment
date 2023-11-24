@@ -58,9 +58,17 @@ class HomeController extends Controller
 
         $validated = $validator->validated();
 
-        $respondee = User::where('email','=', $validated['to'])->first();
+        $respondee = User::where('email','=', $validated['to'])->exists();
 
-        Mail::to($validated['from'])->send(new SendKey);
+        if(!$respondee) {
+            return back()->with('error',"User doesn't exist");
+        }
+
+        $public = User::where('email','=', $validated['from'])->first()->keys()->where("type","=", 'pub')->first();
+
+        dd($public);
+
+        Mail::to($validated['from'])->send(new SendKey($validated['to'], 'testkey'));
 
         return back()->with('success','Email sent successfully');
     }
