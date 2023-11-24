@@ -9,7 +9,7 @@ class Key extends Model
 {
     use HasFactory;
 
-    protected $hidden = ['key'];
+    protected $hidden = ['key', 'type'];
 
     public function users()
     {
