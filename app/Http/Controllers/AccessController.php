@@ -18,6 +18,10 @@ class AccessController extends Controller
         ]);
 
         $user = auth()->user();
+
+        if ($user->email == $request->email) {
+            return redirect()->back()->withErrors(['yourself' => "You can't send requests to yourself"]);
+        }
         
         if($validator->fails()) {
             return redirect()->back()->withErrors($validator);

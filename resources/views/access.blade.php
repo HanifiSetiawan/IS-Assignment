@@ -17,6 +17,16 @@
                 <input type="email" name="email" class="form-control">
 
                 <button type="submit" id="submitbutton" class="btn btn-primary">Request</button>
+                @if(session()->has('success'))
+                <div class="alert alert-success" style="margin-top: 5vh;">
+                    {{ session('success') }}
+                </div>
+                @endif
+                @if ($errors->any())
+                <div class="alert alert-danger" style="margin-top: 5vh;">
+                    {{ $errors->first() }}
+                </div>
+                @endif
             </div>
         </form>
     </div>
