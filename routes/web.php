@@ -33,6 +33,11 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('/access', [AccessController::class, 'index'])->name('access');
     Route::post('/access', [AccessController::class, 'submit'])->name('access.submit');
+
+    Route::post('/respond', [HomeController::class, 'incoming'])
+        ->name('respond');
+    Route::post('/send', [HomeController::class, 'send'])
+        ->name('send');
 });
 
 Route::get('/logout', [LogoutController::class, 'logout'])->name('logout');

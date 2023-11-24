@@ -2,13 +2,74 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SendKey;
+use App\Models\DataRequest;
+use App\Models\User;
 use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Mail;
 
 class HomeController extends Controller
 {
     public function index() {
-        $user = Auth::user()->name;
-        return view('home', ['user' => $user]);
+        $user = Auth::user();
+
+        $sentDataRequests = DataRequest::where('from', '=', $user->email)->get();
+        $incomingDataRequests = DataRequest::where('to','=', $user->email)->get();
+
+        return view('home', ['user' => $user->name, 'sent' => $sentDataRequests, 'incoming' => $incomingDataRequests]);
+    }
+
+    public function incoming(Request $request) {
+        
+        $validator = Validator::make($request->all(), [
+            'state' => ['required', Rule::in(['accepted', 'rejected'])],
+            'from' => ['required', 'email'],
+            'to' => ['required', 'email']
+        ]);
+
+        if($validator->fails()) {
+            return back()->withErrors($validator);
+        }
+
+        $validated = $validator->validated();
+
+        
+        $data = DataRequest::where('from','=', $validated['from'])->where('to','=', $validated['to'])->first();
+
+        $data->state = $validated['state'];
+        $data->save();
+
+        return back()->with('success','Request responded successfully');
+    }
+
+    public function send(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'state' => ['required', Rule::in(['email'])],
+            'from' => ['required', 'email'],
+            'to' => ['required', 'email']
+        ]);
+
+        if($validator->fails()) {
+            return back()->withErrors($validator);
+        }
+
+        $validated = $validator->validated();
+
+        $respondee = User::where('email','=', $validated['to'])->exists();
+
+        if(!$respondee) {
+            return back()->with('error',"User doesn't exist");
+        }
+
+        $public = User::where('email','=', $validated['from'])->first()->keys()->where("type","=", 'pub')->first();
+
+        dd($public);
+
+        Mail::to($validated['from'])->send(new SendKey($validated['to'], 'testkey'));
+
+        return back()->with('success','Email sent successfully');
     }
 }
