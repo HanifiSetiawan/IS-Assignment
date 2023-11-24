@@ -10,7 +10,31 @@
     <div class="boxing">
         <h3>Incoming Requests</h3>
         <hr>
-        Requests here
+        <table class="table table-bordered table-wrap">
+            <thead>
+                <tr>
+                    <th>From</th>
+                    <th>Current Response</th>
+                    <th>Response</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    @foreach($incoming as $item)
+                        <td> {{ $item->from }} </td>
+                        <td> {{ $item->state }} </td>
+                        <td>
+                            <a class="btn btn-primary req" href="">Accept</a>
+                            <a class="btn btn-primary req" href="">Reject</a>
+
+                            @if($item->state == 'accepted')
+                            <a class="btn btn-primary req" href="">Send email</a>
+                            @endif
+                        </td>
+                    @endforeach
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <div class="boxing">

@@ -12,11 +12,12 @@ class HomeController extends Controller
         $user = Auth::user();
 
         $sentDataRequests = DataRequest::where('from', '=', $user->email)->get();
+        $incomingDataRequests = DataRequest::where('to','=', $user->email)->get();
 
-        return view('home', ['user' => $user->name, 'sent' => $sentDataRequests]);
+        return view('home', ['user' => $user->name, 'sent' => $sentDataRequests, 'incoming' => $incomingDataRequests]);
     }
 
-    public function incoming() {
+    public function incoming(Request $request) {
 
     }
 }
