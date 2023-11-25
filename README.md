@@ -332,6 +332,128 @@ class HomeController extends Controller
 ## Form Page
 ![Form](https://media.discordapp.net/attachments/893030036700012585/1165212075300241508/Screenshot_671.png?ex=6546074f&is=6533924f&hm=7c70b1656dd44bce45f434cde7042849ba7f48ea3810cedd6a79a8b372ec8d85&=&width=1248&height=702)
 
+### Orang Controller
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Key;
+use App\Services\DecryptRequests;
+use App\Services\EncryptRequests;
+use Illuminate\Http\Request;
+use App\Models\Orang;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
+class OrangController extends Controller
+{
+    protected EncryptRequests $encryptRequests;
+    protected DecryptRequests $decryptRequests;
+
+
+    public function __construct(EncryptRequests $encryptRequests, DecryptRequests $decryptRequests) {
+        $this->encryptRequests = $encryptRequests;
+        $this->decryptRequests = $decryptRequests;
+        $encAlgo = config('app.picked_cipher');
+        $this->encryptRequests->setAlgorithm($encAlgo);
+        $this->decryptRequests->setAlgorithm($encAlgo);
+    }
+
+    public function index()
+    {
+        return view('form');
+    }
+
+    public function simpanData(Request $request)
+    {
+        
+        $time_start = microtime(true);
+        // Validasi data yang dikirimkan oleh pengguna
+        $validator = Validator::make($request->all(),
+        [
+            'nama' => 'required|string',
+            'nomor_telepon' => 'required|string',
+            'foto_ktp' => 'required|image',
+            'dokumen' => 'required|mimes:pdf,doc,docx,xls,xlsx',
+            'video' => 'required|file|max:25000|mimetypes:video/*',
+        ]
+        );
+
+
+        if($validator->fails()) {
+            return redirect()->back()->withErrors($validator);
+        }
+
+        $encryptor = function ($data, $key) {
+            return $this->encryptRequests->encrypt_with_key($data, $key);
+        };
+        $decryptor = function ($data, $key) {
+            return $this->decryptRequests->decrypt($data, $key);
+        };
+
+        $user = Auth::user();
+        $app_key = config('app.key');
+        $key = $decryptor($user->getUserKey('sym'), $app_key);
+        if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
+
+
+        $nama = $encryptor($request->input('nama'), $key);
+        if(empty($nama)) return redirect()->back()->with('error','Name encryption has failed');
+
+        $no_telp = $encryptor($request->input('nomor_telepon'), $key);
+        if(empty($no_telp)) return redirect()->back()->with('error','Phone number encryption has failed');
+
+
+        $foto = $request->file('foto_ktp');
+        $dokumen = $request->file('dokumen');
+        $video = $request->file('video');
+
+
+
+        $dokumen_enc = $encryptor(base64_encode($dokumen->get()), $key);
+        if(empty($dokumen_enc)) return redirect()->back()->with('error','Document encryption has failed');
+
+        $foto_enc = $encryptor(base64_encode($foto->get()), $key);
+        if(empty($foto_enc)) return redirect()->back()->with('error','Photo encryption has failed');
+
+        $video_enc = $encryptor(base64_encode($video->get()), $key);
+        if(empty($video_enc)) return redirect()->back()->with('error','Video encryption has failed');
+
+        
+        $filefoto = Str::uuid()->toString();
+        $filedokumen = Str::uuid()->toString();
+        $filevideo = Str::uuid()->toString();
+
+        Storage::put($filefoto, $foto_enc);
+        Storage::put($filedokumen, $dokumen_enc);
+        Storage::put($filevideo, $video_enc);
+
+        $orang = new Orang;
+        $orang->nama = $nama;
+        $orang->nomor_telepon = $no_telp;
+        $orang->foto_ktp = $filefoto;
+        $orang->ext_foto = $foto->getClientOriginalExtension();
+        $orang->dokumen = $filedokumen;
+        $orang->ext_doc = $dokumen->getClientOriginalExtension();
+        $orang->video = $filevideo;
+        $orang->ext_vid = $video->getClientOriginalExtension();
+        $orang->user_id = $user->id;
+        $orang->save();
+        
+
+        $time_finish = microtime(true);
+
+        $difference = $time_finish - $time_start;
+
+        return view('submit', ['time' => $difference]);
+    }
+
+}
+```
+
 ### PHP
 ```php
 <!-- resources/views/form.blade.php -->
@@ -558,128 +680,6 @@ class datacontroller extends Controller
 ```
 ## Request Access
 ![RequestPage](https://cdn.discordapp.com/attachments/1160875961550647348/1177811258649612410/image.png?ex=6573dd36&is=65616836&hm=7db8d16b6cca61ff59c920b19098d5302d5861ca71df80d7ae9aceff4cd19365&)
-
-### Orang Controller
-```php
-<?php
-
-namespace App\Http\Controllers;
-
-use App\Models\Key;
-use App\Services\DecryptRequests;
-use App\Services\EncryptRequests;
-use Illuminate\Http\Request;
-use App\Models\Orang;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-
-class OrangController extends Controller
-{
-    protected EncryptRequests $encryptRequests;
-    protected DecryptRequests $decryptRequests;
-
-
-    public function __construct(EncryptRequests $encryptRequests, DecryptRequests $decryptRequests) {
-        $this->encryptRequests = $encryptRequests;
-        $this->decryptRequests = $decryptRequests;
-        $encAlgo = config('app.picked_cipher');
-        $this->encryptRequests->setAlgorithm($encAlgo);
-        $this->decryptRequests->setAlgorithm($encAlgo);
-    }
-
-    public function index()
-    {
-        return view('form');
-    }
-
-    public function simpanData(Request $request)
-    {
-        
-        $time_start = microtime(true);
-        // Validasi data yang dikirimkan oleh pengguna
-        $validator = Validator::make($request->all(),
-        [
-            'nama' => 'required|string',
-            'nomor_telepon' => 'required|string',
-            'foto_ktp' => 'required|image',
-            'dokumen' => 'required|mimes:pdf,doc,docx,xls,xlsx',
-            'video' => 'required|file|max:25000|mimetypes:video/*',
-        ]
-        );
-
-
-        if($validator->fails()) {
-            return redirect()->back()->withErrors($validator);
-        }
-
-        $encryptor = function ($data, $key) {
-            return $this->encryptRequests->encrypt_with_key($data, $key);
-        };
-        $decryptor = function ($data, $key) {
-            return $this->decryptRequests->decrypt($data, $key);
-        };
-
-        $user = Auth::user();
-        $app_key = config('app.key');
-        $key = $decryptor($user->getUserKey('sym'), $app_key);
-        if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
-
-
-        $nama = $encryptor($request->input('nama'), $key);
-        if(empty($nama)) return redirect()->back()->with('error','Name encryption has failed');
-
-        $no_telp = $encryptor($request->input('nomor_telepon'), $key);
-        if(empty($no_telp)) return redirect()->back()->with('error','Phone number encryption has failed');
-
-
-        $foto = $request->file('foto_ktp');
-        $dokumen = $request->file('dokumen');
-        $video = $request->file('video');
-
-
-
-        $dokumen_enc = $encryptor(base64_encode($dokumen->get()), $key);
-        if(empty($dokumen_enc)) return redirect()->back()->with('error','Document encryption has failed');
-
-        $foto_enc = $encryptor(base64_encode($foto->get()), $key);
-        if(empty($foto_enc)) return redirect()->back()->with('error','Photo encryption has failed');
-
-        $video_enc = $encryptor(base64_encode($video->get()), $key);
-        if(empty($video_enc)) return redirect()->back()->with('error','Video encryption has failed');
-
-        
-        $filefoto = Str::uuid()->toString();
-        $filedokumen = Str::uuid()->toString();
-        $filevideo = Str::uuid()->toString();
-
-        Storage::put($filefoto, $foto_enc);
-        Storage::put($filedokumen, $dokumen_enc);
-        Storage::put($filevideo, $video_enc);
-
-        $orang = new Orang;
-        $orang->nama = $nama;
-        $orang->nomor_telepon = $no_telp;
-        $orang->foto_ktp = $filefoto;
-        $orang->ext_foto = $foto->getClientOriginalExtension();
-        $orang->dokumen = $filedokumen;
-        $orang->ext_doc = $dokumen->getClientOriginalExtension();
-        $orang->video = $filevideo;
-        $orang->ext_vid = $video->getClientOriginalExtension();
-        $orang->user_id = $user->id;
-        $orang->save();
-        
-
-        $time_finish = microtime(true);
-
-        $difference = $time_finish - $time_start;
-
-        return view('submit', ['time' => $difference]);
-    }
-
-}
-```
 
 ## Shared Access
 ![SharedPage](https://cdn.discordapp.com/attachments/1160875961550647348/1177811518277025842/image.png?ex=6573dd74&is=65616874&hm=d843d1fbaac0d9918d8bd28c7fa1033786f3152bf65ea66d14cf17a68e498172&)
