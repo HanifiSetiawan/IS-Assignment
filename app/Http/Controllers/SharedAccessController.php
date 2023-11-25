@@ -1,16 +1,19 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Orang;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Auth;
 use App\Services\DecryptRequests;
 use App\Services\EncryptRequests;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Key;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Response;
 
-class datacontroller extends Controller
+class SharedAccessController extends Controller
 {
+
     protected $decryptRequests;
     protected $encryptRequests;
 
@@ -21,27 +24,55 @@ class datacontroller extends Controller
         $this->encryptRequests = $encryptRequests;
         $this->encryptRequests->setAlgorithm($encAlgo);
     }
-    public function index(){
+    public function index() {
+        return view("share-access");
+    }
+
+    public function show(Request $request) {
 
         $time_start = microtime(true);
+
+        $validator = Validator::make($request->all(), [
+            'key' => ['required','string']
+        ]);
+        
+        if($validator->stopOnFirstFailure()->fails()) {
+            return back()->withErrors($validator);
+        }
+        
+        $validated = $validator->validated();
+        $user = Auth::user();
+        $key = base64_decode($validated['key']);
+
 
         $decryptor = function ($data, $key) {
             return $this->decryptRequests->decrypt($data, $key);
         };
 
-        $user = Auth::user();
+        $app_key = config('app.key');
+        $usr_priv = $decryptor($user->getUserKey('priv'), $app_key);
+        $usr_priv = openssl_pkey_get_private($usr_priv);
 
-        if($user) {
-            $app_key = config('app.key');
+        openssl_private_decrypt($key, $sym_key, $usr_priv);
 
-            $key = $decryptor($user->getUserKey('sym'), $app_key);
+        if(empty($sym_key)) {
+            return back()->withErrors(['decfail' => 'Decryption has failed (private key)']);
+        }
+
+        $s_userid = Key::where('key', $sym_key)->first()->user_id;
+
+        $s_user = User::find($s_userid);
+
+        if($s_user) {
+
+            $key = $decryptor($sym_key, $app_key);
             if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
 
 
-            $exist = $user->orangs()->exists();
+            $exist = $s_user->orangs()->exists();
             if(!$exist) return view('show'); 
 
-            $orangs = $user->orangs()->get();
+            $orangs = $s_user->orangs()->get();
             foreach ($orangs as $orang) {
 
                 $pic = Storage::get($orang->foto_ktp);
@@ -51,15 +82,18 @@ class datacontroller extends Controller
                 $orang->nomor_telepon = $decryptor($orang->nomor_telepon, $key);
 
                 $foto_ktp_dec = $decryptor($pic, $key);
-                $orang->foto_ktp = $foto_ktp_dec;    
-        }
+                $orang->foto_ktp = $foto_ktp_dec;
 
+            }
             $time_finish = microtime(true);
 
             $difference = $time_finish - $time_start;
-            return view('show', ['orangs' => $orangs, 'time' => $difference, 'route' => 'show.download']);
+            session(['check-access-route' => true, 's_user' => $s_user]);
+
+            return view('show', ['orangs' => $orangs, 'time' => $difference, 'route' => "shared.download"]);
         }
         return redirect()->back()->with('error','User invalid');
+        
     }
 
     public function download($orang_id, $ext, $file) {
@@ -68,7 +102,7 @@ class datacontroller extends Controller
             return $this->decryptRequests->decrypt($data, $key);
         };
 
-        $user = Auth::user();
+        $user = session('s_user');
         $app_key = config('app.key');
         $key = $decryptor($user->getUserKey('sym'), $app_key);
         if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');

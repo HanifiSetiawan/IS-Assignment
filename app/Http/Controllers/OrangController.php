@@ -61,10 +61,15 @@ class OrangController extends Controller
         $user = Auth::user();
         $app_key = config('app.key');
         $key = $decryptor($user->getUserKey('sym'), $app_key);
+        if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
 
 
         $nama = $encryptor($request->input('nama'), $key);
+        if(empty($nama)) return redirect()->back()->with('error','Name encryption has failed');
+
         $no_telp = $encryptor($request->input('nomor_telepon'), $key);
+        if(empty($no_telp)) return redirect()->back()->with('error','Phone number encryption has failed');
+
 
         $foto = $request->file('foto_ktp');
         $dokumen = $request->file('dokumen');
@@ -73,8 +78,14 @@ class OrangController extends Controller
 
 
         $dokumen_enc = $encryptor(base64_encode($dokumen->get()), $key);
+        if(empty($dokumen_enc)) return redirect()->back()->with('error','Document encryption has failed');
+
         $foto_enc = $encryptor(base64_encode($foto->get()), $key);
+        if(empty($foto_enc)) return redirect()->back()->with('error','Photo encryption has failed');
+
         $video_enc = $encryptor(base64_encode($video->get()), $key);
+        if(empty($video_enc)) return redirect()->back()->with('error','Video encryption has failed');
+
         
         $filefoto = Str::uuid()->toString();
         $filedokumen = Str::uuid()->toString();

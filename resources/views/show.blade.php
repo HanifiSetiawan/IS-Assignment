@@ -15,11 +15,16 @@
             width: 100px;
             height: auto;
         }
+        .alert {
+            margin-left: 5vh;
+            max-width: 50%;
+        }
     </style>
 </head>
 <body>
     @include('navbar')
-<div class="container">
+    @if(!empty($orangs))
+    <div class="container">
         <h1>Data</h1>
         <table class="table table-bordered table-wrap">
             <thead>
@@ -40,19 +45,29 @@
                         <img class="foto" src="data:image/png;base64,{{ $orang->foto_ktp }}" alt="Foto KTP">
                     </td>
                     <td>
-                        <a class="btn btn-primary" href="{{ route('download', ['orang_id' => $orang->id, 'ext' => $orang->ext_doc, 'file' => $orang->dokumen]) }}">Download dokumen</a>
+                        <a class="btn btn-primary" href="{{ route( $route, ['orang_id' => $orang->id, 'ext' => $orang->ext_doc, 'file' => $orang->dokumen]) }}">Download dokumen</a>
 
                     </td>
                     <td>
-                        <a class="btn btn-primary" href="{{ route('download', ['orang_id' => $orang->id, 'ext' => $orang->ext_vid, 'file' => $orang->video]) }}">Download video</a>
+                        <a class="btn btn-primary" href="{{ route( $route, ['orang_id' => $orang->id, 'ext' => $orang->ext_vid, 'file' => $orang->video]) }}">Download video</a>
                     </td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
-        @isset($orangs)
         <p>Time to get page : {{$time}} microseconds</p>
-        @endisset
     </div>
+    @else
+    <div class="alert alert-danger" style="margin-top: 5vh;">
+        No data found
+    </div>
+    @endif
+
+    @if ($errors->any())
+    <div class="alert alert-danger" style="margin-top: 5vh;">
+        {{ $errors->first() }}
+    </div>
+    @endif
+    
 </body>
 </html>

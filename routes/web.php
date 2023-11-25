@@ -5,6 +5,7 @@
 use App\Http\Controllers\datacontroller;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\SharedAccessController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrangController;
 use App\Http\Controllers\LoginController;
@@ -26,7 +27,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/Data', [datacontroller::class, 'index'])->name('Data');
     Route::get('/download/{orang_id}/{ext}/{file}', [datacontroller::class, 'download'])
-        ->name('download')
+        ->name('show.download')
         ->where('orang_id', '.*')
         ->where('ext', '.*')
         ->where('file', '.*');
@@ -38,6 +39,15 @@ Route::middleware(['auth'])->group(function () {
         ->name('respond');
     Route::post('/send', [HomeController::class, 'send'])
         ->name('send');
-});
+
+    Route::get('/shared', [SharedAccessController::class,'index'])->name('shared');
+    Route::post('/shared', [SharedAccessController::class, 'show'])->name('shared.show');
+
+    Route::get('/shared/download/{orang_id}/{ext}/{file}', [SharedAccessController::class, 'download'])
+            ->name('shared.download')
+            ->where('orang_id', '.*')
+            ->where('ext', '.*')
+            ->where('file', '.*');
+    });
 
 Route::get('/logout', [LogoutController::class, 'logout'])->name('logout');
