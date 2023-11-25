@@ -90,6 +90,8 @@ class HomeController extends Controller
         $app_key = config('app.key');
 
         $dec_public = $decryptor($public, $app_key);
+        if(empty($dec_public)) return redirect()->back()->with('error','Public key decryption has failed');
+
         $dec_public = openssl_pkey_get_public($dec_public);
         $user_symkey = $user->getUserKey('sym');
 

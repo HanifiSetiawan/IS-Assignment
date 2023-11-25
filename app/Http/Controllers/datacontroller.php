@@ -35,6 +35,11 @@ class datacontroller extends Controller
             $app_key = config('app.key');
 
             $key = $decryptor($user->getUserKey('sym'), $app_key);
+            if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
+
+
+            $exist = $user->orangs()->exists();
+            if(!$exist) return view('show'); 
 
             $orangs = $user->orangs()->get();
             foreach ($orangs as $orang) {
@@ -67,15 +72,16 @@ class datacontroller extends Controller
         $user = Auth::user();
         $app_key = config('app.key');
         $key = $decryptor($user->getUserKey('sym'), $app_key);
+        if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
 
 
         $doc = Storage::get($file);
-
         $dok_dec = $decryptor($doc, $key);
+        if(empty($dok_dec)) return redirect()->back()->with('error','File Decryption has failed');
+
 
         $filepath = 'file' . '.' . $ext;
         Storage::put($filepath, base64_decode($dok_dec));
-
         $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
 
 

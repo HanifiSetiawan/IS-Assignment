@@ -36,6 +36,14 @@
             <input type="file" name="video" accept="video/*" class="form-control" max-size="25000">
         </div>
         <button type="submit" id="submitbutton" class="btn btn-primary">simpan</button>
+
+        @if ($errors->any())
+        <div class="alert alert-danger" style="margin-top: 5vh;">
+            {{ $errors->first() }}
+        </div>
+        @endif
     </form>
+
+    
 </body>
 </html>
