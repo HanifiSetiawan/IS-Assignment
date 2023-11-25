@@ -318,5 +318,4 @@ class HomeController extends Controller
 ```
 
 ## Request Access
-
 ## Shared Access
