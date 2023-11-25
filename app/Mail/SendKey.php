@@ -41,7 +41,7 @@ class SendKey extends Mailable
     {
         return new Content(
             view: 'mail_key',
-            with: ['name' => $this->sender, 'key' => $this->key],
+            with: ['name' => $this->sender, 'key' => base64_encode($this->key)],
         );
     }
 
