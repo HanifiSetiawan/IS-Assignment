@@ -103,6 +103,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use Spatie\Crypto\Rsa\KeyPair;
 
 class RegisterController extends Controller
 {
@@ -151,10 +152,56 @@ class RegisterController extends Controller
         $key_user = new Key;
         $key_user->key = $encryptor($user_key, $app_key);
         $key_user->user_id = $user->id;
+        $key_user->type = 'sym';
+        if(empty($key_user->key))
+            return back()->withErrors(['encfail' => 'key encryption process (symmetrical) has failed']);   
+
         $key_user->save();
+
+        $asym = $this->createKeys();
+
+        $key_priv = new Key;
+        $key_priv->key = $encryptor($asym['private'], $app_key);
+        $key_priv->user_id = $user->id;
+        $key_priv->type = 'priv';
+        if(empty($key_priv->key))
+            return back()->withErrors(['encfail' => 'key encryption process (private) has failed']);
+        $key_priv->save();
+
+
+        $key_pub = new Key;
+        $key_pub->key = $encryptor($asym['public'], $app_key);
+        $key_pub->user_id = $user->id;
+        $key_pub->type = 'pub';
+        if(empty($key_pub->key))
+        return back()->withErrors(['encfail' => 'key encryption process (public) has failed']);
+        $key_pub->save();
+
 
         return view('login');
 
+    }
+
+    private function createKeys() {
+        $config = [
+            'private_key_bits' => 2048,
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+        ];
+
+        $pkey = openssl_pkey_new($config);
+
+        if ($pkey == false) {
+            $config['config'] = '/opt/homebrew/etc/openssl@3/openssl.cnf';
+        }
+
+
+        $pkey = openssl_pkey_new($config);
+        openssl_pkey_export($pkey, $privateKey, NULL, $config);
+
+        $publicKey = openssl_pkey_get_details($pkey);
+        $publicKey = $publicKey["key"];
+
+        return ['private' => $privateKey, 'public' => $publicKey];
     }
 }
 ```
@@ -171,14 +218,106 @@ class RegisterController extends Controller
 
 namespace App\Http\Controllers;
 
+use App\Mail\SendKey;
+use App\Models\DataRequest;
+use App\Models\User;
 use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Mail;
+
+use App\Services\DecryptRequests;
+use App\Services\EncryptRequests;
 
 class HomeController extends Controller
 {
+    protected $decryptRequests;
+    protected $encryptRequests;
+
+    public function __construct(DecryptRequests $decryptRequests, EncryptRequests $encryptRequests) {
+        $encAlgo = config('app.picked_cipher');
+        $this->decryptRequests = $decryptRequests;
+        $this->decryptRequests->setAlgorithm($encAlgo);
+        $this->encryptRequests = $encryptRequests;
+        $this->encryptRequests->setAlgorithm($encAlgo);
+    }
     public function index() {
-        $user = Auth::user()->name;
-        return view('home', ['user' => $user]);
+        $user = Auth::user();
+
+        $sentDataRequests = DataRequest::where('from', '=', $user->email)->get();
+        $incomingDataRequests = DataRequest::where('to','=', $user->email)->get();
+
+        return view('home', ['user' => $user->name, 'sent' => $sentDataRequests, 'incoming' => $incomingDataRequests]);
+    }
+
+    public function incoming(Request $request) {
+        
+        $validator = Validator::make($request->all(), [
+            'state' => ['required', Rule::in(['accepted', 'rejected'])],
+            'from' => ['required', 'email'],
+            'to' => ['required', 'email']
+        ]);
+
+        if($validator->fails()) {
+            return back()->withErrors($validator);
+        }
+
+        $validated = $validator->validated();
+
+        
+        $data = DataRequest::where('from','=', $validated['from'])->where('to','=', $validated['to'])->first();
+
+        $data->state = $validated['state'];
+        $data->save();
+
+        return back()->with('success','Request responded successfully');
+    }
+
+    public function send(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'state' => ['required', Rule::in(['email'])],
+            'from' => ['required', 'email'],
+            'to' => ['required', 'email']
+        ]);
+
+        if($validator->fails()) {
+            return back()->withErrors($validator);
+        }
+
+        $user = Auth::user();
+
+        $validated = $validator->validated();
+
+        $respondeeExists = User::where('email','=', $validated['to'])->exists();
+
+        if(!$respondeeExists) {
+            return back()->with('error',"User doesn't exist");
+        }
+
+        $respondee = User::where('email','=', $validated['from'])->first();
+        $public = $respondee->getUserKey('pub');
+
+        
+        $decryptor = function ($data, $key) {
+            return $this->decryptRequests->decrypt($data, $key);
+        };
+
+        $app_key = config('app.key');
+
+        $dec_public = $decryptor($public, $app_key);
+        if(empty($dec_public)) return redirect()->back()->with('error','Public key decryption has failed');
+
+        $dec_public = openssl_pkey_get_public($dec_public);
+        $user_symkey = $user->getUserKey('sym');
+
+        openssl_public_encrypt($user_symkey, $encryptedData, $dec_public);
+        
+
+        Mail::to($validated['from'])->send(new SendKey($validated['to'], $encryptedData));
+
+
+        return back()->with('success','Email sent successfully');
     }
 }
 ```
@@ -256,6 +395,100 @@ class HomeController extends Controller
 ## Database Page
 ![DatabaseP](https://cdn.discordapp.com/attachments/1160875961550647348/1177810994278432818/image.png?ex=6573dcf7)
 ![DatabaseV](https://cdn.discordapp.com/attachments/1160875961550647348/1177811247492775937/ezgif-2-695ee5ed88.gif?ex=6573dd34&is=65616834&hm=8a2c5c1295445508cc2c1060de78fcdd28cd42353ca52884b4c6)
+
+### Controller
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+use App\Models\Orang;
+use App\Services\DecryptRequests;
+use App\Services\EncryptRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
+
+class datacontroller extends Controller
+{
+    protected $decryptRequests;
+    protected $encryptRequests;
+
+    public function __construct(DecryptRequests $decryptRequests, EncryptRequests $encryptRequests) {
+        $encAlgo = config('app.picked_cipher');
+        $this->decryptRequests = $decryptRequests;
+        $this->decryptRequests->setAlgorithm($encAlgo);
+        $this->encryptRequests = $encryptRequests;
+        $this->encryptRequests->setAlgorithm($encAlgo);
+    }
+    public function index(){
+
+        $time_start = microtime(true);
+
+        $decryptor = function ($data, $key) {
+            return $this->decryptRequests->decrypt($data, $key);
+        };
+
+        $user = Auth::user();
+
+        if($user) {
+            $app_key = config('app.key');
+
+            $key = $decryptor($user->getUserKey('sym'), $app_key);
+            if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
+
+
+            $exist = $user->orangs()->exists();
+            if(!$exist) return view('show'); 
+
+            $orangs = $user->orangs()->get();
+            foreach ($orangs as $orang) {
+
+                $pic = Storage::get($orang->foto_ktp);
+
+
+                $orang->nama = $decryptor($orang->nama, $key);
+                $orang->nomor_telepon = $decryptor($orang->nomor_telepon, $key);
+
+                $foto_ktp_dec = $decryptor($pic, $key);
+                $orang->foto_ktp = $foto_ktp_dec;    
+        }
+
+            $time_finish = microtime(true);
+
+            $difference = $time_finish - $time_start;
+            return view('show', ['orangs' => $orangs, 'time' => $difference, 'route' => 'show.download']);
+        }
+        return redirect()->back()->with('error','User invalid');
+    }
+
+    public function download($orang_id, $ext, $file) {
+
+        $decryptor = function ($data, $key) {
+            return $this->decryptRequests->decrypt($data, $key);
+        };
+
+        $user = Auth::user();
+        $app_key = config('app.key');
+        $key = $decryptor($user->getUserKey('sym'), $app_key);
+        if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
+
+
+        $doc = Storage::get($file);
+        $dok_dec = $decryptor($doc, $key);
+        if(empty($dok_dec)) return redirect()->back()->with('error','File Decryption has failed');
+
+
+        $filepath = 'file' . '.' . $ext;
+        Storage::put($filepath, base64_decode($dok_dec));
+        $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
+
+
+        return $response;
+    }
+}
+```
 
 ### PHP
 ```php
