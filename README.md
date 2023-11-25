@@ -159,8 +159,11 @@ class RegisterController extends Controller
 }
 ```
 
-## Home Page
-![Home](https://media.discordapp.net/attachments/893030036700012585/1165212074796929034/Screenshot_670.png?ex=6546074f&is=6533924f&hm=2306ecb358f54ad476622edf4a4e8d0ff6f89daa342d694ec305099fa57777d3&=&width=1248&height=702)
+## Home Page 1
+![Home](https://cdn.discordapp.com/attachments/1160875961550647348/1177808498822750229/image.png?ex=6573daa4&is=656165a4&hm=b40cc0b43b0e5e8c67f7ccc4015fd227e09a139492f50073fc9864d9f0bda124&)
+
+## Home Page 2
+![Home-2](https://cdn.discordapp.com/attachments/1160875961550647348/1177808668838862848/image.png?ex=6573dacd&is=656165cd&hm=475bd6d6c0ee08715d0f4c4ce238c2ff7b888b27ab807107d417560b1beb6e62&)
 
 ### Controller
 ```php
@@ -229,67 +232,6 @@ class HomeController extends Controller
 
 ```
 
-### CSS
-```css
-.title {
-    color: black;
-}
-
-h1 {
-    text-align: center;
-    padding-top: 10px;
-    margin: auto;
-    margin-bottom: 1vw;
-    color: black;
-}
-
-form {
-    margin: auto;
-    width: 30%;
-    height: 55%;
-    padding: 10px;
-    border: 5px solid black;
-    color: rgba(0, 0, 0, 0.966);
-    background-color: aliceblue;
-}
-
-body {
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-image:url("../images/FTIF-Informatika-01-e1638867228268.jpg")
-}
-.form-group {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    padding: 1% 7% 5% 7%;
-    margin-left: 2%;
-    margin-right: 6%;
-    margin-top: 2%;
-}
-
-.form-group label {
-    margin-bottom: 5%;
-    scale: 100%;
-}
-
-#submitbutton {
-    position: relative;
-    margin-top: 5vh;
-    margin-left: 2vw;
-    margin-right: 3vw;
-    width: 82.5%;
-}
-
-.registerbutton {
-    position: relative;
-    margin-top: 5vh;
-    margin-left: 2vw;
-    margin-right: 3vw;
-    width: 82.5%;
-}
-```
-
 ## Success Page
 ![SuccPage](https://media.discordapp.net/attachments/893030036700012585/1165212075925180470/Screenshot_672.png?ex=6546074f&is=6533924f&hm=2e7b69e8a4dea96f5e31cf6fed4e124cad37b18b618b6e9dd040768475d58aeb&=&width=1248&height=702)
 
@@ -312,7 +254,8 @@ body {
 ```
 
 ## Database Page
-![DatabaseP](https://media.discordapp.net/attachments/893030036700012585/1165212076415926292/Screenshot_673.png?ex=6546074f&is=6533924f&hm=87d086c7aa988c86faf136bf247eb81f56bd207b9eecba9a3059805302f5b42b&=&width=1248&height=702)
+![DatabaseP](https://cdn.discordapp.com/attachments/1160875961550647348/1177810994278432818/image.png?ex=6573dcf7)
+![DatabaseV](https://cdn.discordapp.com/attachments/1160875961550647348/1177811247492775937/ezgif-2-695ee5ed88.gif?ex=6573dd34&is=65616834&hm=8a2c5c1295445508cc2c1060de78fcdd28cd42353ca52884b4c6)
 
 ### PHP
 ```php
@@ -373,11 +316,8 @@ body {
 </body>
 </html>
 ```
+## Request Access
+![RequestPage](https://cdn.discordapp.com/attachments/1160875961550647348/1177811258649612410/image.png?ex=6573dd36&is=65616836&hm=7db8d16b6cca61ff59c920b19098d5302d5861ca71df80d7ae9aceff4cd19365&)
 
-### CSS
-```css
-.foto{
-    width: 100px;
-    height: auto;
-}
-```
+## Shared Access
+![SharedPage](https://cdn.discordapp.com/attachments/1160875961550647348/1177811518277025842/image.png?ex=6573dd74&is=65616874&hm=d843d1fbaac0d9918d8bd28c7fa1033786f3152bf65ea66d14cf17a68e498172&)
