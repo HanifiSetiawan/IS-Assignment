@@ -51,16 +51,15 @@ class datacontroller extends Controller
                 $orang->nomor_telepon = $decryptor($orang->nomor_telepon, $key);
 
                 $foto_ktp_dec = $decryptor($pic, $key);
-                $orang->foto_ktp = $foto_ktp_dec;
-
-                
-            }
+                $orang->foto_ktp = $foto_ktp_dec;    
+        }
 
             $time_finish = microtime(true);
 
             $difference = $time_finish - $time_start;
-            return view('show', ['orangs' => $orangs, 'time' => $difference]);
+            return view('show', ['orangs' => $orangs, 'time' => $difference, 'route' => 'show.download']);
         }
+        return redirect()->back()->with('error','User invalid');
     }
 
     public function download($orang_id, $ext, $file) {
