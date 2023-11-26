@@ -32,27 +32,7 @@ class datacontroller extends Controller
         $user = Auth::user();
 
         if($user) {
-            $app_key = config('app.key');
-
-            $key = $decryptor($user->getUserKey('sym'), $app_key);
-            if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
-
-
-            $exist = $user->orangs()->exists();
-            if(!$exist) return view('show'); 
-
-            $orangs = $user->orangs()->get();
-            foreach ($orangs as $orang) {
-
-                $pic = Storage::get($orang->foto_ktp);
-
-
-                $orang->nama = $decryptor($orang->nama, $key);
-                $orang->nomor_telepon = $decryptor($orang->nomor_telepon, $key);
-
-                $foto_ktp_dec = $decryptor($pic, $key);
-                $orang->foto_ktp = $foto_ktp_dec;    
-        }
+            $orangs = $user->getDecryptedOrangs($decryptor);
 
             $time_finish = microtime(true);
 
@@ -69,21 +49,28 @@ class datacontroller extends Controller
         };
 
         $user = Auth::user();
-        $app_key = config('app.key');
-        $key = $decryptor($user->getUserKey('sym'), $app_key);
-        if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
+
+        if($user) {
+            $orang = Orang::find($orang_id);
+            $app_key = config('app.key');
+            $key = $orang->key()->first();
+            $key = $decryptor($key->key, $app_key);
+            if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
+    
+    
+            $doc = Storage::get($file);
+            $dok_dec = $decryptor($doc, $key);
+            if(empty($dok_dec)) return redirect()->back()->with('error','File Decryption has failed');
+    
+    
+            $filepath = 'file' . '.' . $ext;
+            Storage::put($filepath, base64_decode($dok_dec));
+            $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
+            return $response;
+        }
 
 
-        $doc = Storage::get($file);
-        $dok_dec = $decryptor($doc, $key);
-        if(empty($dok_dec)) return redirect()->back()->with('error','File Decryption has failed');
 
-
-        $filepath = 'file' . '.' . $ext;
-        Storage::put($filepath, base64_decode($dok_dec));
-        $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
-
-
-        return $response;
+        return redirect()->back()->with('error','User invalid');
     }
 }

@@ -60,9 +60,7 @@ class OrangController extends Controller
 
         $user = Auth::user();
         $app_key = config('app.key');
-        $key = $decryptor($user->getUserKey('sym'), $app_key);
-        if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
-
+        $key = random_bytes(32);
 
         $nama = $encryptor($request->input('nama'), $key);
         if(empty($nama)) return redirect()->back()->with('error','Name encryption has failed');
@@ -95,6 +93,12 @@ class OrangController extends Controller
         Storage::put($filedokumen, $dokumen_enc);
         Storage::put($filevideo, $video_enc);
 
+        $sym_key = new Key;
+        $sym_key->key = $encryptor($key, $app_key);
+        $sym_key->user_id = $user->id;
+        $sym_key->type = 'sym';
+        $sym_key->save();
+
         $orang = new Orang;
         $orang->nama = $nama;
         $orang->nomor_telepon = $no_telp;
@@ -105,7 +109,10 @@ class OrangController extends Controller
         $orang->video = $filevideo;
         $orang->ext_vid = $video->getClientOriginalExtension();
         $orang->user_id = $user->id;
+        $orang->key_id = $sym_key->id;
         $orang->save();
+
+        
         
 
         $time_finish = microtime(true);

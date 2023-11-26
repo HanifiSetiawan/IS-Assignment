@@ -9,5 +9,5 @@ class DataRequest extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['from', 'to', 'state'];
+    protected $fillable = ['from', 'to', 'state', 'description'];
 }

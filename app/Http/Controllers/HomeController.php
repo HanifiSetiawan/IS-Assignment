@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Mail\SendKey;
 use App\Models\DataRequest;
 use App\Models\User;
+use App\Models\Orang;
+
 use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -32,13 +34,19 @@ class HomeController extends Controller
         $sentDataRequests = DataRequest::where('from', '=', $user->email)->get();
         $incomingDataRequests = DataRequest::where('to','=', $user->email)->get();
 
-        return view('home', ['user' => $user->name, 'sent' => $sentDataRequests, 'incoming' => $incomingDataRequests]);
+        $decryptor = function ($data, $key) {
+            return $this->decryptRequests->decrypt($data, $key);
+        };
+
+        $orangs = $user->getDecryptedOrangs($decryptor);
+
+        return view('home', ['user' => $user->name, 'sent' => $sentDataRequests, 'incoming' => $incomingDataRequests, 'orangs' => $orangs]);
     }
 
     public function incoming(Request $request) {
         
         $validator = Validator::make($request->all(), [
-            'state' => ['required', Rule::in(['accepted', 'rejected'])],
+            'state' => ['required', Rule::in(['accepted', 'rejected', 'cancelled'])],
             'from' => ['required', 'email'],
             'to' => ['required', 'email']
         ]);
@@ -48,9 +56,13 @@ class HomeController extends Controller
         }
 
         $validated = $validator->validated();
-
-        
         $data = DataRequest::where('from','=', $validated['from'])->where('to','=', $validated['to'])->first();
+        if(!$data->exists()) return redirect()->back()->with('error',"Data doesn't exist");
+
+        if($validated['state'] == 'cancelled') {
+            $data->delete();
+            return redirect()->back()->with('success', 'Record deleted successfully');
+        }
 
         $data->state = $validated['state'];
         $data->save();
@@ -62,39 +74,37 @@ class HomeController extends Controller
         $validator = Validator::make($request->all(), [
             'state' => ['required', Rule::in(['email'])],
             'from' => ['required', 'email'],
-            'to' => ['required', 'email']
+            'to' => ['required', 'email'],
+            'orang' => ['required', 'exists:App\Models\User,id']
         ]);
 
         if($validator->fails()) {
             return back()->withErrors($validator);
         }
-
+        
         $user = Auth::user();
-
+        
         $validated = $validator->validated();
 
-        $respondeeExists = User::where('email','=', $validated['to'])->exists();
+        $respondeeExists = User::where('email','=', $validated['from'])->exists();
 
         if(!$respondeeExists) {
-            return back()->with('error',"User doesn't exist");
+            return back()->with('error',"User doesn't exist to send the data ");
         }
 
-        $respondee = User::where('email','=', $validated['from'])->first();
-        $public = $respondee->getUserKey('pub');
-
-        
         $decryptor = function ($data, $key) {
             return $this->decryptRequests->decrypt($data, $key);
         };
-
-        $app_key = config('app.key');
-
-        $dec_public = $decryptor($public, $app_key);
+        $respondee = User::where('email','=', $validated['from'])->first();
+        $dec_public = $respondee->getAsymmetricKey($decryptor, 'pub');
         if(empty($dec_public)) return redirect()->back()->with('error','Public key decryption has failed');
-
+        
+        
         $dec_public = openssl_pkey_get_public($dec_public);
-        $user_symkey = $user->getUserKey('sym');
 
+        $orang = Orang::find($validated['orang']);
+        $user_symkey = $orang->key()->first()->key;
+        
         openssl_public_encrypt($user_symkey, $encryptedData, $dec_public);
         
 

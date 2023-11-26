@@ -13,4 +13,9 @@ class Orang extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function key()
+    {
+        return $this->belongsTo(Key::class);
+    }
 }

@@ -16,6 +16,9 @@
                 <label for="email">Email:</label>
                 <input type="email" name="email" class="form-control">
 
+                <label for="description">Description</label>
+                <textarea class="form-control" name="description" id="description" style="resize:none;" rows="5"></textarea>
+
                 <button type="submit" id="submitbutton" class="btn btn-primary">Request</button>
                 @if(session()->has('success'))
                 <div class="alert alert-success" style="margin-top: 5vh;">
