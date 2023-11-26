@@ -27,6 +27,7 @@
             <thead>
                 <tr>
                     <th>From</th>
+                    <th>Description</th>
                     <th>Current Response</th>
                     <th>Response</th>
                 </tr>
@@ -35,16 +36,20 @@
                 <tr>
                     @foreach($incoming as $item)
                         <td> {{ $item->from }} </td>
+                        <td>{{ $item->description }}</td>
                         <td> {{ $item->state }} </td>
                         <td>
-                            <div class="res">
+                            <div class="row res">
                                 @if($item->state != 'accepted')
                                 <form action="{{ route('respond') }}" method="post">
                                     @csrf
                                     <input type="hidden" name="state" value="accepted">
                                     <input type="hidden" name="from" value="{{ $item->from }}">
                                     <input type="hidden" name="to" value="{{ $item->to }}">
+                                    <div class="col">
                                     <button type="submit" class="btn btn-primary req">Accept</button>
+
+                                    </div>
                                 </form>
                                 @endif
 
@@ -54,7 +59,10 @@
                                     <input type="hidden" name="state" value="rejected">
                                     <input type="hidden" name="from" value="{{ $item->from }}">
                                     <input type="hidden" name="to" value="{{ $item->to }}">
+                                    <div class="col">
                                     <button type="submit" class="btn btn-primary req">Reject</button>
+
+                                    </div>
                                 </form>
                                 @endif
 
@@ -64,10 +72,31 @@
                                     <input type="hidden" name="state" value="email">
                                     <input type="hidden" name="from" value="{{ $item->from }}">
                                     <input type="hidden" name="to" value="{{ $item->to }}">
-                                    <button type="submit" class="btn btn-primary req">Send Email</button>
+                                    <label for="orang">File to share :</label>
+
+                                    <div class="col"><select class="form-control" id="orang" name="orang" style="margin-bottom:2vh">
+                                        @foreach($orangs as $orang)
+                                        <option value="{{$orang->id}}">{{$orang->nama . ' - ' . $orang->nomor_telepon}}</option>
+                                        @endforeach
+                                    </select></div>
+                                    
+                                    <div class="col">
+                                        <button type="submit" class="btn btn-primary req">Send Email</button>
+                                    </div>
                                 </form>
                             </div>
                             @endif
+                            <form action="{{ route('respond') }}" method="post">
+                                    @csrf
+                                    <input type="hidden" name="state" value="cancelled">
+                                    <input type="hidden" name="from" value="{{ $item->from }}">
+                                    <input type="hidden" name="to" value="{{ $item->to }}">
+                                    <div class="col">
+                                    <button type="submit" class="btn btn-primary req">Cancel</button>
+
+                                    </div>
+                                </form>
+                            
                         </td>
                     @endforeach
                 </tr>
@@ -82,6 +111,7 @@
             <thead>
                 <tr>
                     <th>To</th>
+                    <th>Description</th>
                     <th>Response</th>
                 </tr>
             </thead>
@@ -89,6 +119,7 @@
                 <tr>
                     @foreach($sent as $item)
                         <td> {{ $item->to }} </td>
+                        <td>{{ $item->description }}</td>
                         <td> {{ $item->state }} </td>
                     @endforeach
                 </tr>

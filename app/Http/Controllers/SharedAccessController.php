@@ -9,6 +9,8 @@ use App\Services\DecryptRequests;
 use App\Services\EncryptRequests;
 use App\Models\Key;
 use App\Models\User;
+use App\Models\Orang;
+
 use Illuminate\Support\Facades\Storage;
 
 class SharedAccessController extends Controller
@@ -49,8 +51,7 @@ class SharedAccessController extends Controller
             return $this->decryptRequests->decrypt($data, $key);
         };
 
-        $app_key = config('app.key');
-        $usr_priv = $decryptor($user->getUserKey('priv'), $app_key);
+        $usr_priv = $user->getAsymmetricKey($decryptor, 'priv');
         $usr_priv = openssl_pkey_get_private($usr_priv);
 
         openssl_private_decrypt($key, $sym_key, $usr_priv);
@@ -59,36 +60,30 @@ class SharedAccessController extends Controller
             return back()->withErrors(['decfail' => 'Decryption has failed (private key)']);
         }
 
-        $s_userid = Key::where('key', $sym_key)->first()->user_id;
+        $s_keymodel = Key::where('key', $sym_key)->first();
+        $s_userid = $s_keymodel->user_id;
 
         $s_user = User::find($s_userid);
 
         if($s_user) {
 
-            $key = $decryptor($sym_key, $app_key);
-            if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
+            $app_key = config('app.key');
 
-
-            $exist = $s_user->orangs()->exists();
-            if(!$exist) return view('show'); 
-
-            $orangs = $s_user->orangs()->get();
+            $orangs = Orang::where('key_id', $s_keymodel->id)->get();
             foreach ($orangs as $orang) {
-
+                $sym_key = $decryptor($sym_key, $app_key);
                 $pic = Storage::get($orang->foto_ktp);
+                $orang->nama = $decryptor($orang->nama, $sym_key);
+                $orang->nomor_telepon = $decryptor($orang->nomor_telepon, $sym_key);
 
-
-                $orang->nama = $decryptor($orang->nama, $key);
-                $orang->nomor_telepon = $decryptor($orang->nomor_telepon, $key);
-
-                $foto_ktp_dec = $decryptor($pic, $key);
+                $foto_ktp_dec = $decryptor($pic, $sym_key);
                 $orang->foto_ktp = $foto_ktp_dec;
-
             }
+
             $time_finish = microtime(true);
 
             $difference = $time_finish - $time_start;
-            session(['check-access-route' => true, 's_user' => $s_user]);
+            session(['check-access-route' => true]);
 
             return view('show', ['orangs' => $orangs, 'time' => $difference, 'route' => "shared.download"]);
         }
@@ -102,22 +97,29 @@ class SharedAccessController extends Controller
             return $this->decryptRequests->decrypt($data, $key);
         };
 
-        $user = session('s_user');
-        $app_key = config('app.key');
-        $key = $decryptor($user->getUserKey('sym'), $app_key);
-        if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
+        $user = Auth::user();
+
+        if($user) {
+            $orang = Orang::find($orang_id);
+            $app_key = config('app.key');
+            $key = $orang->key()->first();
+            $key = $decryptor($key->key, $app_key);
+            if(empty($key)) return redirect()->back()->with('error','Symmetrical Key Decryption has failed');
+    
+    
+            $doc = Storage::get($file);
+            $dok_dec = $decryptor($doc, $key);
+            if(empty($dok_dec)) return redirect()->back()->with('error','File Decryption has failed');
+    
+    
+            $filepath = 'file' . '.' . $ext;
+            Storage::put($filepath, base64_decode($dok_dec));
+            $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
+            return $response;
+        }
 
 
-        $doc = Storage::get($file);
-        $dok_dec = $decryptor($doc, $key);
-        if(empty($dok_dec)) return redirect()->back()->with('error','File Decryption has failed');
 
-
-        $filepath = 'file' . '.' . $ext;
-        Storage::put($filepath, base64_decode($dok_dec));
-        $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
-
-
-        return $response;
+        return redirect()->back()->with('error','User invalid');
     }
 }

@@ -51,6 +51,10 @@ class EncryptRequests {
         $this->encryptionAlgorithm = $encryptionAlgorithm;
     }
 
+    public function getEncryptionAlgorithm() {
+        return $this->encryptionAlgorithm;
+    }
+
     function getIv($algorithm) {
         switch ($algorithm) {
             case 'AES-256-CBC':

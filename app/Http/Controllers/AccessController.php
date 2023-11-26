@@ -14,7 +14,8 @@ class AccessController extends Controller
 
     public function submit(Request $request) {
         $validator = Validator::make($request->all(), [
-            'email' => ['required', 'email', 'exists:App\Models\User,email']
+            'email' => ['required', 'email', 'exists:App\Models\User,email'],
+            'description' => ['nullable', 'ascii']
         ]);
 
         $user = auth()->user();
@@ -51,6 +52,10 @@ class AccessController extends Controller
         $dataRequest->from = $user->email;
         $dataRequest->to = $validated['email'];
         $dataRequest->state = 'pending';
+        if(empty($validated['description'])) {
+            $dataRequest->description = '-';
+        }
+        else $dataRequest->description = $validated['description'];
 
         $dataRequest->save();
 
