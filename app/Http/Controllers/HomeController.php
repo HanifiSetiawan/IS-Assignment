@@ -84,33 +84,44 @@ class HomeController extends Controller
         
         $user = Auth::user();
         
-        $validated = $validator->validated();
+        if($user) {
+            $validated = $validator->validated();
 
-        $respondeeExists = User::where('email','=', $validated['from'])->exists();
+            $respondeeExists = User::where('email','=', $validated['from'])->exists();
 
-        if(!$respondeeExists) {
-            return back()->with('error',"User doesn't exist to send the data ");
+            if(!$respondeeExists) {
+                return back()->with('error',"User doesn't exist to send the data ");
+            }
+
+            $decryptor = function ($data, $key) {
+                return $this->decryptRequests->decrypt($data, $key);
+            };
+            $respondee = User::where('email','=', $validated['from'])->first();
+
+            try {
+                $dec_public = $respondee->getAsymmetricKey($decryptor, 'pub');
+            } catch (\Throwable $th) {
+                return back()->withErrors(['error' => 'Getting public key has failed']);
+            }
+            
+            if(empty($dec_public)) return redirect()->back()->with('error','Public key decryption has failed');
+            
+            
+            
+            $orang = Orang::find($validated['orang']);
+            $user_symkey = $orang->key()->first()->key;
+
+            try {
+                $encryptedData = $dec_public->encrypt($user_symkey);
+            } catch (\Throwable $th) {
+                return redirect()->back()->with('error','Encrypting symmetric key has failed');
+            }
+            
+            Mail::to($validated['from'])->send(new SendKey($validated['to'], $encryptedData));
+
+
+            return back()->with('success','Email sent successfully');
         }
-
-        $decryptor = function ($data, $key) {
-            return $this->decryptRequests->decrypt($data, $key);
-        };
-        $respondee = User::where('email','=', $validated['from'])->first();
-        $dec_public = $respondee->getAsymmetricKey($decryptor, 'pub');
-        if(empty($dec_public)) return redirect()->back()->with('error','Public key decryption has failed');
-        
-        
-        $dec_public = openssl_pkey_get_public($dec_public);
-
-        $orang = Orang::find($validated['orang']);
-        $user_symkey = $orang->key()->first()->key;
-        
-        openssl_public_encrypt($user_symkey, $encryptedData, $dec_public);
-        
-
-        Mail::to($validated['from'])->send(new SendKey($validated['to'], $encryptedData));
-
-
-        return back()->with('success','Email sent successfully');
+        return redirect('login')->with('error','User not authenticated');
     }
 }
