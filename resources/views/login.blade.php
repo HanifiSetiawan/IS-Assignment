@@ -22,6 +22,11 @@
         </div>
         <button type="submit" id="submitbutton" class="btn btn-primary">Login</button>
         <a class="btn btn-success" id="submitbutton" href="{{route('register')}}">Register</a>
+        @if ($errors->any())
+            <div class="alert alert-danger" style="margin-top: 5vh;">
+                {{ $errors->first() }}
+            </div>
+        @endif
     </form>
 </body>
 </html>
