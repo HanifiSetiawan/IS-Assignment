@@ -51,14 +51,18 @@ class SharedAccessController extends Controller
             return $this->decryptRequests->decrypt($data, $key);
         };
 
-        $usr_priv = $user->getAsymmetricKey($decryptor, 'priv');
-        $usr_priv = openssl_pkey_get_private($usr_priv);
-
-        openssl_private_decrypt($key, $sym_key, $usr_priv);
-
-        if(empty($sym_key)) {
-            return back()->withErrors(['decfail' => 'Decryption has failed (private key)']);
+        try {
+            $usr_priv = $user->getAsymmetricKey($decryptor, 'priv');
+        } catch (\Throwable $th) {
+            return back()->withErrors(['decfail' => 'Getting private key has failed']);
         }
+        
+        try {
+            $sym_key = $usr_priv->decrypt($key);
+        } catch (\Throwable $th) {
+            return back()->withErrors(['decfail' => 'Decryption has failed (symmetric key)']);
+        }
+        
 
         $s_keymodel = Key::where('key', $sym_key)->first();
         $s_userid = $s_keymodel->user_id;

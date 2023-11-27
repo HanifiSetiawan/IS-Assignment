@@ -6,10 +6,10 @@ use App\Models\Key;
 use App\Models\User;
 use App\Services\EncryptRequests;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
-use Spatie\Crypto\Rsa\KeyPair;
+use phpseclib3\Crypt\RSA;
+use Auth;
 
 class RegisterController extends Controller
 {
@@ -45,6 +45,7 @@ class RegisterController extends Controller
         $validated = $validator->validated();
 
         $app_key = config('app.key');
+        $asym = $this->createKeys();
 
 
         $user = new User;
@@ -55,7 +56,6 @@ class RegisterController extends Controller
 
         //Deleted symmetric key
 
-        $asym = $this->createKeys();
 
         $key_priv = new Key;
         $key_priv->key = $encryptor($asym['private'], $app_key);
@@ -74,30 +74,24 @@ class RegisterController extends Controller
         return back()->withErrors(['encfail' => 'key encryption process (public) has failed']);
         $key_pub->save();
 
+        if(Auth::attempt([
+            'email' => $validated['email'],
+            'password' => $validated['password']
+        ])) {
+            $request->session()->regenerate();
+            return redirect()->intended('home');
+        }
 
-        return view('login');
+        return redirect('login')->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
 
     }
 
     private function createKeys() {
-        $config = [
-            'private_key_bits' => 2048,
-            'private_key_type' => OPENSSL_KEYTYPE_RSA,
-        ];
+        $privateKey = RSA::createKey();
+        $publicKey = $privateKey->getPublicKey();
 
-        $pkey = openssl_pkey_new($config);
-
-        if ($pkey == false) {
-            $config['config'] = '/opt/homebrew/etc/openssl@3/openssl.cnf';
-        }
-
-
-        $pkey = openssl_pkey_new($config);
-        openssl_pkey_export($pkey, $privateKey, NULL, $config);
-
-        $publicKey = openssl_pkey_get_details($pkey);
-        $publicKey = $publicKey["key"];
-
-        return ['private' => $privateKey, 'public' => $publicKey];
+        return ['private' => $privateKey->toString('PKCS8'), 'public' => $publicKey->toString('PKCS8')];
     }
 }

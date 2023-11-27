@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Mail;
 
 use App\Services\DecryptRequests;
 use App\Services\EncryptRequests;
+use phpseclib3\Crypt\RSA;
 
 class HomeController extends Controller
 {
@@ -96,16 +97,27 @@ class HomeController extends Controller
             return $this->decryptRequests->decrypt($data, $key);
         };
         $respondee = User::where('email','=', $validated['from'])->first();
-        $dec_public = $respondee->getAsymmetricKey($decryptor, 'pub');
+
+        try {
+            $dec_public = $respondee->getAsymmetricKey($decryptor, 'pub');
+        } catch (\Throwable $th) {
+            return back()->withErrors(['error' => 'Getting public key has failed']);
+        }
+        
         if(empty($dec_public)) return redirect()->back()->with('error','Public key decryption has failed');
         
         
-        $dec_public = openssl_pkey_get_public($dec_public);
-
+        
         $orang = Orang::find($validated['orang']);
         $user_symkey = $orang->key()->first()->key;
+
+        try {
+            $encryptedData = $dec_public->encrypt($user_symkey);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error','Encrypting symmetric key has failed');
+        }
         
-        openssl_public_encrypt($user_symkey, $encryptedData, $dec_public);
+        
         
 
         Mail::to($validated['from'])->send(new SendKey($validated['to'], $encryptedData));

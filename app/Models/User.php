@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Storage;
+use phpseclib3\Crypt\RSA;
+
 
 
 class User extends Authenticatable
@@ -95,9 +97,10 @@ class User extends Authenticatable
     public function getAsymmetricKey($decryptor, $type) {
         $app_key = config('app.key');
         $key = $this->keys()->where('type', $type)->first();
-        if(!$key->exists()) return null;
         
+        if(!$key->exists()) return null;
+        $decrypted = $decryptor($key->key, $app_key);
 
-        return $decryptor($key->key, $app_key);
+        return RSA::load($decrypted);
     }
 }
