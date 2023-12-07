@@ -3,6 +3,7 @@
 // routes/web.php
 
 use App\Http\Controllers\datacontroller;
+use App\Http\Controllers\FileVerificationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SharedAccessController;
@@ -48,6 +49,9 @@ Route::middleware(['auth'])->group(function () {
             ->where('orang_id', '.*')
             ->where('ext', '.*')
             ->where('file', '.*');
-    });
+
+    Route::get('/verify', [FileVerificationController::class, 'index'])->name('verify.index');
+    Route::post('/verify', [FileVerificationController::class, 'verify'])->name('verify.submit');
+});
 
 Route::get('/logout', [LogoutController::class, 'logout'])->name('logout');

@@ -24,6 +24,9 @@
         <li class="nav-item">
           <a class="nav-link" href="{{route('shared')}}">Shared Access</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{route('verify.index')}}">Verify File</a>
+        </li>
       </ul>
       <a class="btn btn-primary btn-sm btn-navigate" href="{{route('logout')}}">Logout</a>
     </div>
