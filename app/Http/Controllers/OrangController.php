@@ -73,6 +73,10 @@ class OrangController extends Controller
         $dokumen = $request->file('dokumen');
         $video = $request->file('video');
 
+        //how do I put encrypted hash in document? idk
+        $dokumen_hash = bcrypt($dokumen->get());
+        dd($dokumen_hash);
+
 
 
         $dokumen_enc = $encryptor(base64_encode($dokumen->get()), $key);
