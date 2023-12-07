@@ -73,6 +73,33 @@ class OrangController extends Controller
         $dokumen = $request->file('dokumen');
         $video = $request->file('video');
 
+        //regex pattern to get pdf object -> 2 0 obj, for example
+        $pattern = '/(\d+) (\d+) obj/';
+        
+        $f = $dokumen->getContent();
+        $maxObj = -1;
+        $offsetEOF = -1;
+
+        // will get the maximum object number
+        // making sure that the pdf file doesn't use the object number, iterating by 1
+        if (preg_match_all($pattern, $f, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                if($match[1] > $maxObj){
+                    $maxObj = $match[1];
+                }
+            }
+            //find offset of last %%EOF
+            if(preg_match("/%%EOF$/", $f, $matches, PREG_OFFSET_CAPTURE)) {
+                $offsetEOF = $matches[0];
+            }
+        }
+        else return redirect()->back()->with('error','something wrong with pdf');
+        //iterate +1 to use as a new object later
+        $maxObj += 1;
+        $offsetEOF = $offsetEOF[1];
+        dd($offsetEOF);
+        
+
         //how do I put encrypted hash in document? idk
         $dokumen_hash = bcrypt($dokumen->get());
         dd($dokumen_hash);
