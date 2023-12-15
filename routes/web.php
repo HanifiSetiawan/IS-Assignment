@@ -50,4 +50,6 @@ Route::middleware(['auth'])->group(function () {
             ->where('file', '.*');
     });
 
+    Route::get('/tcpdf',[\App\Http\Controllers\TCPDFController::class,'downloadPdf'])->name('SignedPDF');
+
 Route::get('/logout', [LogoutController::class, 'logout'])->name('logout');
