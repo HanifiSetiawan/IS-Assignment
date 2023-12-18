@@ -73,6 +73,9 @@ class OrangController extends Controller
         $dokumen = $request->file('dokumen');
         $video = $request->file('video');
 
+        $dokumen_hash = bcrypt($dokumen->get());
+        //then encrypt the hash
+
         //regex pattern to get pdf object -> 2 0 obj, for example
         $pattern = '/(\d+) (\d+) obj/';
         
@@ -92,17 +95,26 @@ class OrangController extends Controller
             if(preg_match("/%%EOF$/", $f, $matches, PREG_OFFSET_CAPTURE)) {
                 $offsetEOF = $matches[0];
             }
+            else return redirect()->back()->with('error','something wrong with pdf (1)');
+
         }
-        else return redirect()->back()->with('error','something wrong with pdf');
+        else return redirect()->back()->with('error','something wrong with pdf (2)');
         //iterate +1 to use as a new object later
         $maxObj += 1;
         $offsetEOF = $offsetEOF[1];
-        dd($offsetEOF);
         
+        //hopefully stitching the string containing the dig sig
+        $before = substr($f, 0, $offsetEOF);
+        $after = substr($f, $offsetEOF);
 
-        //how do I put encrypted hash in document? idk
-        $dokumen_hash = bcrypt($dokumen->get());
-        dd($dokumen_hash);
+        //continue trying to understand how to embed dig sig to pdf
+        $digSigString = $maxObj . " 0 obj
+        <</F 132/Type/Annot/Subtype/Widget/Rect[0 0 0 0]/FT/Sig
+        /DR<<>>/T(signature)/V 1 0 R/P 4 0 R/AP<</N 2 0 R>>>>
+        endobj\n";
+        $f = $before . $digSigString . $after;
+        dd($f);
+
 
 
 
