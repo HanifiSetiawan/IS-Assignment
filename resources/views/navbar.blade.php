@@ -25,7 +25,7 @@
           <a class="nav-link" href="{{route('shared')}}">Shared Access</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{route('SignedPDF')}}">Download Signed PDF</a>
+          <a class="nav-link" href="{{route('pdf.showForm')}}">Download Signed PDF</a>
         </li>
       </ul>
       <a class="btn btn-primary btn-sm btn-navigate" href="{{route('logout')}}">Logout</a>

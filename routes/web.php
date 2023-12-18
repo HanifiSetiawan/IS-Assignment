@@ -11,6 +11,8 @@ use App\Http\Controllers\OrangController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\AccessController;
+use App\Http\Controllers\TCPDFController;
+use App\Http\Controllers\PDFSignatureController;
 
 
 Route::get('/login', [LoginController::class, 'index']);
@@ -50,6 +52,10 @@ Route::middleware(['auth'])->group(function () {
             ->where('file', '.*');
     });
 
-    Route::get('/tcpdf',[\App\Http\Controllers\TCPDFController::class,'downloadPdf'])->name('SignedPDF');
+    Route::get('/sign-and-download-pdf', [PDFSignatureController::class, 'showForm'])
+        ->name('pdf.showForm');
+
+    Route::post('/sign-and-download-pdf', [PDFSignatureController::class, 'downloadPdf'])
+        ->name('pdf.signAndDownload');
 
 Route::get('/logout', [LogoutController::class, 'logout'])->name('logout');
