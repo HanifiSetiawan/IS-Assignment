@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
+use phpseclib3\Crypt\RSA;
+
 
 class OrangController extends Controller
 {
@@ -73,7 +77,13 @@ class OrangController extends Controller
         $dokumen = $request->file('dokumen');
         $video = $request->file('video');
 
-        $dokumen_hash = bcrypt($dokumen->get());
+        try {
+            $dec_priv = $user->getAsymmetricKey($decryptor, 'priv');
+        } catch (\Throwable $th) {
+            return back()->withErrors(['error' => 'Getting public key has failed']);
+        }
+        $dokumen_hash = Hash::make($dokumen->get());
+        $dokumen_hash = $dec_priv->sign($dokumen_hash);
         //then encrypt the hash
 
         //regex pattern to get pdf object -> 2 0 obj, for example
@@ -107,18 +117,21 @@ class OrangController extends Controller
         $before = substr($f, 0, $offsetEOF);
         $after = substr($f, $offsetEOF);
 
+
+        $time = now()->format('D:YmdHisO');
         //continue trying to understand how to embed dig sig to pdf
         $digSigString = $maxObj . " 0 obj
         <</F 132/Type/Annot/Subtype/Widget/Rect[0 0 0 0]/FT/Sig
-        /DR<<>>/T(signature)/V 1 0 R/P 4 0 R/AP<</N 2 0 R>>>>
-        endobj\n";
+        /DR<<>>/T(signature)/V ". $maxObj+1 . " 0 R/P 4 0 R/AP<</N 2 0 R>>>>
+        endobj\n" . $maxObj + 1 . " 0 obj
+        <</Contents <" . $dokumen_hash . ">/Type/Sig/SubFilter/adbe.pkcs8.detached/Location(Indonesia)/M(" . $time . ")/ByteRange [0 160 16546 1745 ]/Filter/Adobe.PPKLite/Reason(Test)/ContactInfo()>>
+        endobj";
         $f = $before . $digSigString . $after;
-        dd($f);
 
 
 
 
-        $dokumen_enc = $encryptor(base64_encode($dokumen->get()), $key);
+        $dokumen_enc = $encryptor(base64_encode($f), $key);
         if(empty($dokumen_enc)) return redirect()->back()->with('error','Document encryption has failed');
 
         $foto_enc = $encryptor(base64_encode($foto->get()), $key);
