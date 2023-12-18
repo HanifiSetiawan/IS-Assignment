@@ -10,6 +10,8 @@ use App\Services\EncryptRequests;
 use App\Models\Key;
 use App\Models\User;
 use App\Models\Orang;
+use App\Services\SignDocument;
+
 
 use Illuminate\Support\Facades\Storage;
 
@@ -114,10 +116,13 @@ class SharedAccessController extends Controller
             $doc = Storage::get($file);
             $dok_dec = $decryptor($doc, $key);
             if(empty($dok_dec)) return redirect()->back()->with('error','File Decryption has failed');
-    
+
+            $signer = new SignDocument;
+            $decoded = base64_decode($dok_dec);
+            $decoded = $signer->sign($decryptor, $orang->user() ,$decoded);
     
             $filepath = 'file' . '.' . $ext;
-            Storage::put($filepath, base64_decode($dok_dec));
+            Storage::put($filepath, $decoded);
             $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
             return $response;
         }
