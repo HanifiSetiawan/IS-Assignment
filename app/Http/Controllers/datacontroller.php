@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\Orang;
 use App\Services\DecryptRequests;
 use App\Services\EncryptRequests;
+use App\Services\SignDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -61,10 +62,12 @@ class datacontroller extends Controller
             $doc = Storage::get($file);
             $dok_dec = $decryptor($doc, $key);
             if(empty($dok_dec)) return redirect()->back()->with('error','File Decryption has failed');
-    
-    
+            
+            $signer = new SignDocument;
+            $decoded = base64_decode($dok_dec);
+            $decoded = $signer->sign($decryptor, $user ,$decoded);
             $filepath = 'file' . '.' . $ext;
-            Storage::put($filepath, base64_decode($dok_dec));
+            Storage::put($filepath, $decoded);
             $response = response()->download(Storage::path($filepath))->deleteFileAfterSend(true);
             return $response;
         }
